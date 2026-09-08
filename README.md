@@ -84,6 +84,31 @@ glued to the value. The file is quoted per RFC 4180, which matters because the
 insight sentences contain commas, and carries a byte order mark so Excel opens
 it as UTF-8.
 
+### The indicator profile radar
+
+Key insights opens with a radar comparing the two groups across six indicators:
+average attendance, peak attendance, steadiness, first timers, youth class and
+children share.
+
+The catch with a radar is that every axis has to share one scale, and these
+indicators do not: attendance runs into the hundreds, shares are percentages,
+first timers are single figures. So **each axis is normalised on its own**, with
+whichever group leads it pinned to 100 and the other drawn in proportion. That
+makes the chart a comparison of shape, not of absolute size. A point on the
+outer ring means "ahead on this axis", never "good". The tooltip carries the
+real figures so nothing has to be read off the rings.
+
+Two consequences fall out of that:
+
+- **Steadiness is inverted.** It comes from the swing between a group's quietest
+  and busiest service, where a smaller number is steadier. Plotted raw, the more
+  erratic group would reach further out and look better, so the axis uses the
+  reciprocal and the steadier group reaches further.
+- **An axis missing from either group is dropped, not zeroed.** A zero would
+  draw a dent that reads as a finding rather than a gap in the sheet. Dropped
+  axes are named underneath. Below three shared indicators the radar is replaced
+  by a note, since three points is the minimum that encloses a shape.
+
 Two decisions worth knowing:
 
 - **The overlay plots by service number, not by date.** Group A's first service

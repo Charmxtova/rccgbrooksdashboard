@@ -1,10 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { compareInsights, groupStats, overlaySeries, type GroupStats } from "@/lib/compare";
+import {
+  buildRadar,
+  compareInsights,
+  groupStats,
+  overlaySeries,
+  type GroupStats,
+} from "@/lib/compare";
 import { applyFilters, DEFAULT_FILTERS, describeFilters, type FilterState } from "@/lib/filters";
 import type { Dataset } from "@/lib/types";
 import CompareInsights from "./CompareInsights";
+import CompareRadar from "./CompareRadar";
 import CoverageNote, { CoverageLine } from "./CoverageNote";
 import ExportButton from "./ExportButton";
 import CompareOverlay from "./CompareOverlay";
@@ -36,6 +43,7 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
   );
 
   const overlay = useMemo(() => overlaySeries(rowsA, rowsB), [rowsA, rowsB]);
+  const radar = useMemo(() => buildRadar(statsA, statsB), [statsA, statsB]);
   const medA = statsA.medianAttendance;
   const medB = statsB.medianAttendance;
 
@@ -164,6 +172,7 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
             statsB={statsB}
             className="mb-4 border-b border-brand-100 pb-3 dark:border-night-700"
           />
+          <CompareRadar axes={radar.axes} skipped={radar.skipped} />
           <CompareInsights insights={insights} />
         </Card>
       </div>

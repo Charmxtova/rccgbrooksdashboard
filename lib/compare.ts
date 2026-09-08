@@ -246,3 +246,130 @@ export function overlaySeries(
     b: tb[i]?.total ?? null,
   }));
 }
+
+/* ------------------------------------------------------------- Radar */
+
+export interface RadarAxis {
+  axis: string;
+  /** Normalised 0 to 100, where whichever group leads this axis reads 100. */
+  a: number;
+  b: number;
+  /** The real figures, which are what the tooltip shows. */
+  rawA: number;
+  rawB: number;
+  suffix: string;
+  dp: number;
+  note: string;
+}
+
+const perService = (total: number, count: number) =>
+  count > 0 ? total / count : null;
+
+/**
+ * A radar needs every axis on one scale, but these indicators are measured in
+ * different units entirely: attendance in the hundreds, shares in percent,
+ * first timers in single figures. So each axis is normalised on its own, with
+ * the leading group pinned to 100 and the other drawn in proportion.
+ *
+ * That makes the chart a comparison of shape, not of absolute size. A point at
+ * 100 means "ahead on this axis", never "good". The tooltip carries the real
+ * numbers so nobody has to read anything off the rings.
+ */
+export function buildRadar(
+  a: GroupStats,
+  b: GroupStats,
+): { axes: RadarAxis[]; skipped: string[] } {
+  const specs = [
+    {
+      axis: "Average attendance",
+      a: a.meanAttendance,
+      b: b.meanAttendance,
+      suffix: "",
+      dp: 0,
+      invert: false,
+      note: "Mean attendance per service",
+    },
+    {
+      axis: "Peak attendance",
+      a: a.peak?.value ?? null,
+      b: b.peak?.value ?? null,
+      suffix: "",
+      dp: 0,
+      invert: false,
+      note: "Best attended single service",
+    },
+    {
+      axis: "Steadiness",
+      a: a.spread,
+      b: b.spread,
+      suffix: "",
+      dp: 0,
+      invert: true,
+      note: "Swing between the quietest and busiest service, inverted so the steadier group reaches further out",
+    },
+    {
+      axis: "First timers",
+      a: perService(a.firstTimersTotal, a.firstTimersServices),
+      b: perService(b.firstTimersTotal, b.firstTimersServices),
+      suffix: "",
+      dp: 1,
+      invert: false,
+      note: "Average per service that recorded any",
+    },
+    {
+      axis: "Youth class",
+      a: perService(a.youthTotal, a.youthServices),
+      b: perService(b.youthTotal, b.youthServices),
+      suffix: "",
+      dp: 0,
+      invert: false,
+      note: "Average Youth Interactive Class per session held",
+    },
+    {
+      axis: "Children share",
+      a: a.childrenShare,
+      b: b.childrenShare,
+      suffix: "%",
+      dp: 0,
+      invert: false,
+      note: "Children as a share of attendance",
+    },
+  ];
+
+  const axes: RadarAxis[] = [];
+  const skipped: string[] = [];
+
+  for (const spec of specs) {
+    // An axis missing from either side would draw a dent that looks like a
+    // finding rather than a gap in the sheet, so it is left off entirely.
+    if (spec.a === null || spec.b === null) {
+      skipped.push(spec.axis);
+      continue;
+    }
+
+    // Attendance is whole people, so a spread under 1 is a spread of nothing.
+    // Clamping keeps the reciprocal finite when a group never varies.
+    const scale = (v: number) => (spec.invert ? 1 / Math.max(v, 1) : v);
+    const va = scale(spec.a);
+    const vb = scale(spec.b);
+    const max = Math.max(va, vb);
+
+    if (max <= 0) {
+      skipped.push(spec.axis);
+      continue;
+    }
+
+    axes.push({
+      axis: spec.axis,
+      a: Math.round((va / max) * 100),
+      b: Math.round((vb / max) * 100),
+      rawA: spec.a,
+      rawB: spec.b,
+      suffix: spec.suffix,
+      dp: spec.dp,
+      note: spec.note,
+    });
+  }
+
+  return { axes, skipped };
+}
