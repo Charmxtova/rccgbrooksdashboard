@@ -38,7 +38,14 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Everything except Next internals, the login API, and static files.
-    "/((?!_next/static|_next/image|api/login|favicon.ico|logo.png|robots.txt).*)",
+    /**
+     * Everything except Next internals, the login API, and static assets.
+     *
+     * Image files are matched by extension rather than by name. Naming one file
+     * meant that renaming the logo left the middleware guarding it, so the
+     * image 307'd to /login and the header silently fell back to its SVG
+     * placeholder for anyone not yet signed in.
+     */
+    "/((?!_next/static|_next/image|api/login|favicon\\.ico|robots\\.txt|.*\\.(?:png|jpe?g|svg|gif|webp|ico|avif)$).*)",
   ],
 };
