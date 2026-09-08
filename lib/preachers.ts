@@ -47,9 +47,13 @@ const ALIASES: Record<string, string> = {
   "john itriekwene": JOHN,
   "john": JOHN,
 
-  // --- Pastor Segun Aderibigbe (~4) ---
+  // --- Pastor Segun Aderibigbe (~6) ---
+  // "Seun" and "Sola" were confirmed by the church as the same man, so all
+  // three spellings fold together.
   "segun aderibigbe": SEGUN,
   "segun": SEGUN,
+  "seun aderibigbe": SEGUN,
+  "sola aderibigbe": SEGUN,
 
   // --- Pastor (Mrs) Ufooma Luther-Abegunde (~3) ---
   // "Pst Mrs Luther-Abegunde" and "Pst/Mrs Luther-Abegunde" have no first name,
@@ -71,8 +75,6 @@ const ALIASES: Record<string, string> = {
  * These stay as separate entries on the dashboard and are surfaced for review.
  */
 export const UNCERTAIN: { raw: string; note: string }[] = [
-  { raw: "Seun Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe. A misspelling of Segun, or a different person?" },
-  { raw: "Bro Sola Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe, but listed without the Pastor title." },
   { raw: "Ufuoma Usen", note: "First name resembles Ufooma Luther-Abegunde but the surname differs, so kept separate." },
   { raw: "Falade Bukola / Olumide Olanrewaju", note: "Two names in one cell, counted as a single joint entry." },
 ];

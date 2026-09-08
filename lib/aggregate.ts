@@ -18,15 +18,21 @@ export function attended(services: ServiceRecord[]): ServiceRecord[] {
 
 /* ------------------------------------------------------------------ KPIs */
 
-/** Fill colour for the card, drawn from the church logo and its RCCG roundel. */
+/**
+ * Fill colour for the card, drawn from the church logo and its RCCG roundel.
+ * The three share cards deliberately reuse the congregation pie's own colours
+ * so the two readings of the same split line up visually.
+ */
 export type KpiTone =
-  | "teal"
   | "deepTeal"
-  | "orange"
-  | "charcoal"
+  | "navy"
   | "green"
-  | "deepOrange"
-  | "red";
+  | "plum"
+  | "red"
+  | "amber"
+  | "shareMen"
+  | "shareWomen"
+  | "shareChildren";
 
 export interface Kpi {
   label: string;
@@ -61,12 +67,21 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
     null,
   );
 
-  // Children as a share of attendance, using only services where the split is known.
-  const withChildren = withTotals.filter((s) => s.children !== null);
-  const childrenTotal = withChildren.reduce((a, s) => a + s.children!, 0);
-  const childrenBase = withChildren.reduce((a, s) => a + s.total!, 0);
-  const childrenShare =
-    childrenBase > 0 ? (childrenTotal / childrenBase) * 100 : null;
+  /**
+   * Share of attendance for one group, counted only across services where that
+   * group's number was actually recorded, so a blank cell does not read as a
+   * zero and drag the percentage down.
+   */
+  const shareOf = (pick: (s: ServiceRecord) => number | null): number | null => {
+    const known = withTotals.filter((s) => pick(s) !== null);
+    const base = known.reduce((a, s) => a + s.total!, 0);
+    if (base === 0) return null;
+    return (known.reduce((a, s) => a + pick(s)!, 0) / base) * 100;
+  };
+
+  const menShare = shareOf((s) => s.men);
+  const womenShare = shareOf((s) => s.women);
+  const childrenShare = shareOf((s) => s.children);
 
   return [
     {
@@ -77,7 +92,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
           ? ((latest.total - previous.total) / previous.total) * 100
           : null,
       hint: latest ? `${latest.day}, ${formatDate(latest.date)}` : "No services yet",
-      tone: "teal",
+      tone: "deepTeal",
     },
     {
       label: "Average attendance",
@@ -87,7 +102,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
           ? ((recentAvg - priorAvg) / priorAvg) * 100
           : null,
       hint: "Last 8 services vs the 8 before",
-      tone: "deepTeal",
+      tone: "navy",
     },
     {
       label: "Services recorded",
@@ -96,28 +111,44 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       hint: services.length
         ? `${formatDate(services[0].date)} to ${formatDate(services[services.length - 1].date)}`
         : "No services in range",
-      tone: "charcoal",
+      tone: "green",
     },
     {
       label: "Peak attendance",
       value: peak?.total ?? null,
       deltaPct: null,
       hint: peak ? `${peak.day}, ${formatDate(peak.date)}` : "No data yet",
-      tone: "green",
+      tone: "plum",
     },
     {
       label: "First timers",
       value: firstTimers.length ? firstTimers.reduce((a, b) => a + b, 0) : null,
       deltaPct: null,
       hint: `Recorded at ${firstTimers.length} of ${services.length} services`,
-      tone: "orange",
+      tone: "red",
     },
     {
       label: "Sunday school",
       value: sundaySchool.length ? Math.round(mean(sundaySchool)!) : null,
       deltaPct: null,
       hint: `Average, from ${sundaySchool.length} of ${services.length} services`,
-      tone: "deepOrange",
+      tone: "amber",
+    },
+    {
+      label: "Men share",
+      value: menShare === null ? null : Math.round(menShare),
+      suffix: "%",
+      deltaPct: null,
+      hint: "Men as a share of total attendance",
+      tone: "shareMen",
+    },
+    {
+      label: "Women share",
+      value: womenShare === null ? null : Math.round(womenShare),
+      suffix: "%",
+      deltaPct: null,
+      hint: "Women as a share of total attendance",
+      tone: "shareWomen",
     },
     {
       label: "Children share",
@@ -125,7 +156,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       suffix: "%",
       deltaPct: null,
       hint: "Children as a share of total attendance",
-      tone: "red",
+      tone: "shareChildren",
     },
   ];
 }
@@ -234,6 +265,10 @@ export interface Bucket {
   name: string;
   value: number;
   count?: number;
+  /** Extra lines for the tooltip, used where a bar is a single service. */
+  theme?: string | null;
+  preacher?: string | null;
+  day?: ServiceDay;
 }
 
 function averageBy(
@@ -321,16 +356,21 @@ export function byPreacher(services: ServiceRecord[], limit = 8): Bucket[] {
     .slice(0, limit);
 }
 
-export function firstTimersOverTime(services: ServiceRecord[]): Bucket[] {
-  const groups = new Map<string, number>();
-  for (const s of services) {
-    if (s.firstTimers === null) continue;
-    const key = s.date.slice(0, 7);
-    groups.set(key, (groups.get(key) ?? 0) + s.firstTimers);
-  }
-  return [...groups.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([key, value]) => ({ name: formatMonth(key), value }));
+/**
+ * One bar per service rather than per month, so each bar can carry the theme
+ * that service was built around. Monthly buckets would mix several themes into
+ * a single bar and there would be nothing meaningful to label it with.
+ */
+export function firstTimersByService(services: ServiceRecord[]): Bucket[] {
+  return services
+    .filter((s) => s.firstTimers !== null && s.firstTimers > 0)
+    .map((s) => ({
+      name: formatShortDate(s.date),
+      value: s.firstTimers!,
+      theme: s.theme,
+      preacher: s.preacher,
+      day: s.day,
+    }));
 }
 
 /* ------------------------------------------------------------ Formatting */

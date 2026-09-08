@@ -38,14 +38,27 @@ they are recorded here instead.
 - **Preacher names are normalised.** The column is free text, so one person
   appears under many spellings: "Pastor Femi Luther-Abegunde", "Pastor Femi",
   "Femi Luther" and "Pst Femi Luther Abegunde" are all the same person. The map
-  lives in [`lib/preachers.ts`](lib/preachers.ts) and is easy to edit. A few
-  ambiguous cases are deliberately left unmerged and listed in `UNCERTAIN` in
-  that same file.
+  lives in [`lib/preachers.ts`](lib/preachers.ts) and is easy to edit. "Pastor
+  Segun Aderibigbe", "Seun Aderibigbe" and "Bro Sola Aderibigbe" were confirmed
+  by the church as one man and are merged. Two genuinely ambiguous entries are
+  left alone and listed in `UNCERTAIN` in that same file.
 - **Duplicate rows are collapsed.** Every March 2025 service is entered twice in
   the source sheet. They are counted once here, but they are still duplicated at
   source and worth deleting there.
 - **New Converts has never been filled in**, so that KPI was removed. The column
   is still read and still reaches `/api/data` if it is ever populated.
+
+## Controls
+
+- **Service** and **Period** dropdowns, plus a **From** and **To** date range.
+  The three compose: picking 2025 and a From date of 1 June gives June to
+  December 2025. A Clear dates button appears once either date is set.
+- **Enter data** opens the attendance Google Form in a new tab. It points at the
+  form's public response URL, not the `/edit` editor URL, which would prompt
+  people to sign in as an editor instead of letting them submit.
+- **Refresh** calls `/api/refresh`, which runs `revalidatePath("/")` and then
+  re-renders. Without dropping the cache first the button would re-run the page
+  against the same five minute cache and appear to do nothing.
 
 ## Branding and theming
 
@@ -55,6 +68,13 @@ chart palette, so Men / Women / Children read as the logo's own triad. They are
 defined once in [`tailwind.config.ts`](tailwind.config.ts) as `brand` (teal),
 `accent` (orange) and `ink` (charcoal). The KPI cards add the green and red of
 the RCCG roundel so each card carries its own fill.
+
+Those KPI fills are darkened versions of the logo colours. The logo teal and
+orange sit at 3.6:1 and 2.5:1 against white text, both under the 4.5:1 that WCAG
+AA asks for body text, so the raw brand colours are not used as card fills.
+Every fill in `TONE_FILL` clears 4.5:1. The three share cards reuse the same
+teal, orange and charcoal as the congregation pie so the card and the chart read
+as one split.
 
 **The logo** lives at `public/logo.jpg`. It is a JPEG on a solid white
 background, so [`components/Logo.tsx`](components/Logo.tsx) sits it inside a

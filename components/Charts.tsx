@@ -24,7 +24,9 @@ function BarTooltip({ active, payload, valueLabel, countLabel }: any) {
   const p = payload[0].payload as Bucket;
   return (
     <ChartTooltipShell>
-      <p className="font-semibold text-ink-700 dark:text-slate-100">{p.name}</p>
+      <p className="font-semibold text-ink-700 dark:text-slate-100">
+        {p.day ? `${p.day}, ${p.name}` : p.name}
+      </p>
       <p className="mt-1 text-ink-600 dark:text-slate-300">
         {valueLabel}: <span className="font-semibold">{p.value}</span>
       </p>
@@ -32,6 +34,12 @@ function BarTooltip({ active, payload, valueLabel, countLabel }: any) {
         <p className="text-ink-500 dark:text-slate-400">
           {countLabel}: {p.count}
         </p>
+      )}
+      {p.theme && (
+        <p className="mt-1 text-ink-500 dark:text-slate-400">{p.theme}</p>
+      )}
+      {p.preacher && (
+        <p className="text-ink-500 dark:text-slate-400">{p.preacher}</p>
       )}
     </ChartTooltipShell>
   );

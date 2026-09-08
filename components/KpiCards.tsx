@@ -1,18 +1,24 @@
 import type { Kpi, KpiTone } from "@/lib/aggregate";
 
 /**
- * Every fill is taken from the church logo: the teal wordmark, the orange
- * swoosh, the charcoal tagline, and the green and red of the RCCG roundel.
- * All seven are dark enough to carry white text at AA contrast.
+ * Fills come from the church logo and the RCCG roundel. Every one was checked
+ * against white text and clears 4.5:1, the WCAG AA threshold for body text.
+ * The lighter teal and orange of the logo itself sit at 3.6:1 and 2.5:1, so
+ * they are darkened here rather than used raw.
+ *
+ * The three share cards use the same teal, orange and charcoal as the
+ * congregation pie, so the card and the chart read as one split.
  */
 const TONE_FILL: Record<KpiTone, string> = {
-  teal: "bg-[#2494a3]",
-  deepTeal: "bg-[#23616c]",
-  orange: "bg-[#ef8b24]",
-  charcoal: "bg-[#58595b]",
-  green: "bg-[#0f8a4d]",
-  deepOrange: "bg-[#b55312]",
-  red: "bg-[#c22a2f]",
+  deepTeal: "bg-[#1d5560]",
+  navy: "bg-[#1f4e79]",
+  green: "bg-[#0d7a44]",
+  plum: "bg-[#7a3560]",
+  red: "bg-[#b3262b]",
+  amber: "bg-[#7a3f0c]",
+  shareMen: "bg-[#1f7f8c]",
+  shareWomen: "bg-[#ad5a0a]",
+  shareChildren: "bg-[#4f5052]",
 };
 
 function DeltaBadge({ pct }: { pct: number }) {
