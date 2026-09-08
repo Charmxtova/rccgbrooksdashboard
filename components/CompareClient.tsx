@@ -16,6 +16,8 @@ import { formatDate, median } from "@/lib/aggregate";
 import { compareInsights, groupStats, overlaySeries } from "@/lib/compare";
 import { applyFilters, DEFAULT_FILTERS, describeFilters, type FilterState } from "@/lib/filters";
 import type { Dataset } from "@/lib/types";
+import CompareInsights from "./CompareInsights";
+import CompareTable, { type MetricSection } from "./CompareTable";
 import FilterControls from "./FilterControls";
 import SiteHeader from "./SiteHeader";
 import { useChartTheme } from "./ThemeProvider";
@@ -48,18 +50,77 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
   const medA = statsA.medianAttendance;
   const medB = statsB.medianAttendance;
 
-  const rows: MetricRow[] = [
-    { label: "Services", a: statsA.services, b: statsB.services, dp: 0 },
-    { label: "Total attendance", a: statsA.totalAttendance, b: statsB.totalAttendance, dp: 0 },
-    { label: "Average per service", a: statsA.meanAttendance, b: statsB.meanAttendance, dp: 0 },
-    { label: "Median per service", a: medA, b: medB, dp: 0 },
-    { label: "Best attended", a: statsA.peak?.value ?? null, b: statsB.peak?.value ?? null, dp: 0 },
-    { label: "Least attended", a: statsA.low?.value ?? null, b: statsB.low?.value ?? null, dp: 0 },
-    { label: "Men share", a: statsA.menShare, b: statsB.menShare, dp: 0, suffix: "%" },
-    { label: "Women share", a: statsA.womenShare, b: statsB.womenShare, dp: 0, suffix: "%" },
-    { label: "Children share", a: statsA.childrenShare, b: statsB.childrenShare, dp: 0, suffix: "%" },
-    { label: "First timers", a: statsA.firstTimersTotal, b: statsB.firstTimersTotal, dp: 0 },
-    { label: "Youth Interactive Class", a: statsA.youthTotal, b: statsB.youthTotal, dp: 0 },
+  const sections: MetricSection[] = [
+    {
+      title: "Attendance",
+      rows: [
+        { label: "Services", a: statsA.services, b: statsB.services, dp: 0 },
+        {
+          label: "Total attendance",
+          a: statsA.totalAttendance,
+          b: statsB.totalAttendance,
+          dp: 0,
+        },
+        {
+          label: "Average per service",
+          a: statsA.meanAttendance,
+          b: statsB.meanAttendance,
+          dp: 0,
+        },
+        {
+          label: "Median per service",
+          a: medA,
+          b: medB,
+          dp: 0,
+          note: "Unmoved by one off highs and lows",
+        },
+        {
+          label: "Best attended",
+          a: statsA.peak?.value ?? null,
+          b: statsB.peak?.value ?? null,
+          dp: 0,
+        },
+        {
+          label: "Least attended",
+          a: statsA.low?.value ?? null,
+          b: statsB.low?.value ?? null,
+          dp: 0,
+        },
+      ],
+    },
+    {
+      title: "Who was in the room",
+      rows: [
+        { label: "Men", a: statsA.menShare, b: statsB.menShare, dp: 0, suffix: "%" },
+        { label: "Women", a: statsA.womenShare, b: statsB.womenShare, dp: 0, suffix: "%" },
+        {
+          label: "Children",
+          a: statsA.childrenShare,
+          b: statsB.childrenShare,
+          dp: 0,
+          suffix: "%",
+        },
+      ],
+    },
+    {
+      title: "Participation",
+      rows: [
+        {
+          label: "First timers",
+          a: statsA.firstTimersTotal,
+          b: statsB.firstTimersTotal,
+          dp: 0,
+          note: `Across ${statsA.firstTimersServices} and ${statsB.firstTimersServices} services`,
+        },
+        {
+          label: "Youth Interactive Class",
+          a: statsA.youthTotal,
+          b: statsB.youthTotal,
+          dp: 0,
+          note: `Across ${statsA.youthServices} and ${statsB.youthServices} sessions`,
+        },
+      ],
+    },
   ];
 
   return (
@@ -106,22 +167,9 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
       <div className="mt-6">
         <Card
           title="Key insights"
-          subtitle="Worked out from the two groups below. Every line restates the numbers, nothing is inferred."
+          subtitle="Worked out from the two groups above. Every line restates the numbers, nothing is inferred."
         >
-          {insights.length === 0 ? (
-            <p className="text-sm text-ink-500 dark:text-slate-400">
-              The two groups are too similar to draw anything out of.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {insights.map((insight, i) => (
-                <li key={i} className="flex gap-2.5 text-sm">
-                  <InsightMark kind={insight.kind} />
-                  <span className="text-ink-700 dark:text-slate-200">{insight.text}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <CompareInsights insights={insights} />
         </Card>
       </div>
 
@@ -129,25 +177,9 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
       <div className="mt-6">
         <Card
           title="Side by side"
-          subtitle="A blank cell means that figure was never recorded for the group"
+          subtitle="An n/a means that figure was never recorded for the group"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-brand-100 text-xs uppercase tracking-wide text-ink-500 dark:border-night-700 dark:text-slate-400">
-                  <th className="pb-2 font-medium">Metric</th>
-                  <th className={`pb-2 text-right font-semibold ${A_TEXT}`}>Set A</th>
-                  <th className={`pb-2 text-right font-semibold ${B_TEXT}`}>Set B</th>
-                  <th className="pb-2 text-right font-medium">Difference</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-50 dark:divide-night-800">
-                {rows.map((row) => (
-                  <MetricLine key={row.label} row={row} />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <CompareTable sections={sections} />
         </Card>
       </div>
 
@@ -282,69 +314,6 @@ function GroupPanel({
       />
       <p className="mt-3 text-xs text-ink-500 dark:text-slate-400">{label}</p>
     </section>
-  );
-}
-
-interface MetricRow {
-  label: string;
-  a: number | null;
-  b: number | null;
-  dp: number;
-  suffix?: string;
-}
-
-function MetricLine({ row }: { row: MetricRow }) {
-  const show = (v: number | null) =>
-    v === null ? "n/a" : v.toFixed(row.dp) + (row.suffix ?? "");
-
-  const diff = row.a !== null && row.b !== null ? row.a - row.b : null;
-  // A tiny negative difference rounds to "-0%", which reads like a mistake.
-  const rounded = diff === null ? null : Number(diff.toFixed(row.dp));
-  const diffText =
-    rounded === null
-      ? "n/a"
-      : rounded === 0
-        ? `0${row.suffix ?? ""}`
-        : `${rounded > 0 ? "+" : ""}${rounded.toFixed(row.dp)}${row.suffix ?? ""}`;
-
-  return (
-    <tr>
-      <td className="py-2 text-ink-700 dark:text-slate-200">{row.label}</td>
-      <td className="py-2 text-right font-semibold tabular-nums text-ink-800 dark:text-slate-100">
-        {show(row.a)}
-      </td>
-      <td className="py-2 text-right font-semibold tabular-nums text-ink-800 dark:text-slate-100">
-        {show(row.b)}
-      </td>
-      <td
-        className={`py-2 text-right font-semibold tabular-nums ${
-          rounded === null || rounded === 0
-            ? "text-ink-400 dark:text-slate-500"
-            : rounded > 0
-              ? "text-emerald-600 dark:text-emerald-400"
-              : "text-amber-600 dark:text-amber-400"
-        }`}
-      >
-        {diffText}
-      </td>
-    </tr>
-  );
-}
-
-function InsightMark({ kind }: { kind: string }) {
-  const map: Record<string, { glyph: string; className: string; label: string }> = {
-    up: { glyph: "▲", className: "text-emerald-600 dark:text-emerald-400", label: "higher" },
-    down: { glyph: "▼", className: "text-amber-600 dark:text-amber-400", label: "lower" },
-    flat: { glyph: "=", className: "text-ink-400 dark:text-slate-500", label: "level" },
-    note: { glyph: "•", className: "text-brand-500", label: "note" },
-    warn: { glyph: "!", className: "text-rose-600 dark:text-rose-400", label: "caution" },
-  };
-  const m = map[kind] ?? map.note;
-  return (
-    <span className={`mt-0.5 shrink-0 font-bold ${m.className}`} aria-hidden>
-      {m.glyph}
-      <span className="sr-only">{m.label}</span>
-    </span>
   );
 }
 
