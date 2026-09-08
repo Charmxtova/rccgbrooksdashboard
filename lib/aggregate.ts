@@ -18,21 +18,8 @@ export function attended(services: ServiceRecord[]): ServiceRecord[] {
 
 /* ------------------------------------------------------------------ KPIs */
 
-/**
- * Fill colour for the card, drawn from the church logo and its RCCG roundel.
- * The three share cards deliberately reuse the congregation pie's own colours
- * so the two readings of the same split line up visually.
- */
-export type KpiTone =
-  | "deepTeal"
-  | "navy"
-  | "green"
-  | "plum"
-  | "red"
-  | "amber"
-  | "shareMen"
-  | "shareWomen"
-  | "shareChildren";
+/** Fill colour for the card, drawn from the church logo and its RCCG roundel. */
+export type KpiTone = "deepTeal" | "navy" | "green" | "plum" | "red" | "amber";
 
 export interface Kpi {
   label: string;
@@ -66,22 +53,6 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
     (best, s) => (best === null || s.total! > best.total! ? s : best),
     null,
   );
-
-  /**
-   * Share of attendance for one group, counted only across services where that
-   * group's number was actually recorded, so a blank cell does not read as a
-   * zero and drag the percentage down.
-   */
-  const shareOf = (pick: (s: ServiceRecord) => number | null): number | null => {
-    const known = withTotals.filter((s) => pick(s) !== null);
-    const base = known.reduce((a, s) => a + s.total!, 0);
-    if (base === 0) return null;
-    return (known.reduce((a, s) => a + pick(s)!, 0) / base) * 100;
-  };
-
-  const menShare = shareOf((s) => s.men);
-  const womenShare = shareOf((s) => s.women);
-  const childrenShare = shareOf((s) => s.children);
 
   return [
     {
@@ -133,30 +104,6 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       deltaPct: null,
       hint: `Average, from ${sundaySchool.length} of ${services.length} services`,
       tone: "amber",
-    },
-    {
-      label: "Men share",
-      value: menShare === null ? null : Math.round(menShare),
-      suffix: "%",
-      deltaPct: null,
-      hint: "Men as a share of total attendance",
-      tone: "shareMen",
-    },
-    {
-      label: "Women share",
-      value: womenShare === null ? null : Math.round(womenShare),
-      suffix: "%",
-      deltaPct: null,
-      hint: "Women as a share of total attendance",
-      tone: "shareWomen",
-    },
-    {
-      label: "Children share",
-      value: childrenShare === null ? null : Math.round(childrenShare),
-      suffix: "%",
-      deltaPct: null,
-      hint: "Children as a share of total attendance",
-      tone: "shareChildren",
     },
   ];
 }

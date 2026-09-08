@@ -71,10 +71,6 @@ export default function LoginPage({
             </form>
           )}
         </div>
-
-        <p className="mt-4 text-center text-xs text-ink-500 dark:text-slate-400">
-          Attendance figures are for church leadership.
-        </p>
       </div>
     </main>
   );

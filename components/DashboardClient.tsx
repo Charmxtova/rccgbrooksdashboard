@@ -286,7 +286,7 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
 
         <Card
           title="Services led by preacher"
-          subtitle="Top preachers by number of services, after merging name spellings"
+          subtitle="Preachers by numbers of services"
         >
           <SimpleBar
             data={preachers}

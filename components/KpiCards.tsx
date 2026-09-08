@@ -5,9 +5,6 @@ import type { Kpi, KpiTone } from "@/lib/aggregate";
  * against white text and clears 4.5:1, the WCAG AA threshold for body text.
  * The lighter teal and orange of the logo itself sit at 3.6:1 and 2.5:1, so
  * they are darkened here rather than used raw.
- *
- * The three share cards use the same teal, orange and charcoal as the
- * congregation pie, so the card and the chart read as one split.
  */
 const TONE_FILL: Record<KpiTone, string> = {
   deepTeal: "bg-[#1d5560]",
@@ -16,15 +13,21 @@ const TONE_FILL: Record<KpiTone, string> = {
   plum: "bg-[#7a3560]",
   red: "bg-[#b3262b]",
   amber: "bg-[#7a3f0c]",
-  shareMen: "bg-[#1f7f8c]",
-  shareWomen: "bg-[#ad5a0a]",
-  shareChildren: "bg-[#4f5052]",
 };
 
+/**
+ * Green for a rise, yellow for a fall. Both pills are light with dark text
+ * rather than the other way round, because they sit on six different card
+ * fills and a light chip is the only thing that stays legible on all of them.
+ */
 function DeltaBadge({ pct }: { pct: number }) {
   const up = pct >= 0;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white">
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+        up ? "bg-emerald-400 text-emerald-950" : "bg-amber-300 text-amber-950"
+      }`}
+    >
       <span aria-hidden>{up ? "▲" : "▼"}</span>
       {Math.abs(pct).toFixed(1)}%
       <span className="sr-only">{up ? "increase" : "decrease"}</span>
@@ -34,7 +37,7 @@ function DeltaBadge({ pct }: { pct: number }) {
 
 export default function KpiCards({ kpis }: { kpis: Kpi[] }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {kpis.map((kpi) => (
         <div
           key={kpi.label}
