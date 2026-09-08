@@ -18,6 +18,16 @@ export function attended(services: ServiceRecord[]): ServiceRecord[] {
 
 /* ------------------------------------------------------------------ KPIs */
 
+/** Fill colour for the card, drawn from the church logo and its RCCG roundel. */
+export type KpiTone =
+  | "teal"
+  | "deepTeal"
+  | "orange"
+  | "charcoal"
+  | "green"
+  | "deepOrange"
+  | "red";
+
 export interface Kpi {
   label: string;
   value: number | null;
@@ -25,8 +35,7 @@ export interface Kpi {
   deltaPct: number | null;
   hint: string;
   suffix?: string;
-  /** Set when the underlying column is empty in the sheet. */
-  empty?: boolean;
+  tone: KpiTone;
 }
 
 export function buildKpis(services: ServiceRecord[]): Kpi[] {
@@ -45,9 +54,6 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
     .filter((n): n is number => n !== null);
   const sundaySchool = services
     .map((s) => s.sundaySchool)
-    .filter((n): n is number => n !== null);
-  const newConverts = services
-    .map((s) => s.newConverts)
     .filter((n): n is number => n !== null);
 
   const peak = withTotals.reduce<ServiceRecord | null>(
@@ -70,7 +76,8 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
         latest?.total != null && previous?.total != null && previous.total !== 0
           ? ((latest.total - previous.total) / previous.total) * 100
           : null,
-      hint: latest ? `${latest.day}, ${formatDate(latest.date)}` : "No services",
+      hint: latest ? `${latest.day}, ${formatDate(latest.date)}` : "No services yet",
+      tone: "teal",
     },
     {
       label: "Average attendance",
@@ -80,6 +87,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
           ? ((recentAvg - priorAvg) / priorAvg) * 100
           : null,
       hint: "Last 8 services vs the 8 before",
+      tone: "deepTeal",
     },
     {
       label: "Services recorded",
@@ -88,24 +96,28 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       hint: services.length
         ? `${formatDate(services[0].date)} to ${formatDate(services[services.length - 1].date)}`
         : "No services in range",
+      tone: "charcoal",
     },
     {
       label: "Peak attendance",
       value: peak?.total ?? null,
       deltaPct: null,
-      hint: peak ? `${peak.day}, ${formatDate(peak.date)}` : "—",
+      hint: peak ? `${peak.day}, ${formatDate(peak.date)}` : "No data yet",
+      tone: "green",
     },
     {
       label: "First timers",
       value: firstTimers.length ? firstTimers.reduce((a, b) => a + b, 0) : null,
       deltaPct: null,
       hint: `Recorded at ${firstTimers.length} of ${services.length} services`,
+      tone: "orange",
     },
     {
       label: "Sunday school",
       value: sundaySchool.length ? Math.round(mean(sundaySchool)!) : null,
       deltaPct: null,
       hint: `Average, from ${sundaySchool.length} of ${services.length} services`,
+      tone: "deepOrange",
     },
     {
       label: "Children share",
@@ -113,15 +125,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       suffix: "%",
       deltaPct: null,
       hint: "Children as a share of total attendance",
-    },
-    {
-      label: "New converts",
-      value: newConverts.length ? newConverts.reduce((a, b) => a + b, 0) : null,
-      deltaPct: null,
-      hint: newConverts.length
-        ? `Recorded at ${newConverts.length} services`
-        : "Column is empty in the sheet",
-      empty: newConverts.length === 0,
+      tone: "red",
     },
   ];
 }

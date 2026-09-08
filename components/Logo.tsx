@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Uses the real church artwork at public/logo.png as soon as that file exists.
- * Until then it falls back to the SVG lockup below, which borrows the logo's
- * three swooshes (teal, orange, charcoal) so the header is on-brand either way.
- * Nothing needs changing when the PNG is added — it is picked up automatically.
+ * The supplied artwork is a JPEG on a solid white background, so it sits inside
+ * a white rounded panel. That reads as deliberate in dark mode instead of
+ * looking like a stray white rectangle. Swapping in a transparent PNG later
+ * would let the panel be dropped.
  */
 export default function Logo({
   className = "",
@@ -28,14 +28,20 @@ export default function Logo({
 
   if (!artworkFailed) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        ref={imgRef}
-        src="/logo.png"
-        alt="RCCG The Brooks"
-        className={`h-12 w-auto sm:h-14 ${className}`}
-        onError={() => setArtworkFailed(true)}
-      />
+      <span
+        className={`inline-flex shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/5 ${className}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={imgRef}
+          src="/logo.jpg"
+          alt="RCCG The Brooks"
+          width={810}
+          height={810}
+          className="h-14 w-14 object-contain sm:h-16 sm:w-16"
+          onError={() => setArtworkFailed(true)}
+        />
+      </span>
     );
   }
 

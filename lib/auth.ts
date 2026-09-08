@@ -1,5 +1,5 @@
 /**
- * A single shared password for the whole dashboard — church leadership are all
+ * A single shared password for the whole dashboard, since church leadership are all
  * looking at the same aggregate numbers, so there are no per-user accounts.
  * The cookie holds a SHA-256 of the password rather than the password itself,
  * and is httpOnly so page scripts cannot read it.

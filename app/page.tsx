@@ -1,6 +1,6 @@
 import DashboardClient from "@/components/DashboardClient";
 import Logo from "@/components/Logo";
-import { fetchBothTabs, SHEET_URL } from "@/lib/sheets";
+import { fetchBothTabs, SHEET_ID, SHEET_URL } from "@/lib/sheets";
 import { buildDataset } from "@/lib/transform";
 
 /** Re-read the Google Sheet at most once every 5 minutes. */
@@ -26,18 +26,20 @@ export default async function Page() {
             Could not load the attendance sheet
           </h1>
           <p className="mt-2 text-sm text-rose-800 dark:text-rose-200/90">{error}</p>
-          <a
-            href={SHEET_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-4 inline-block text-sm font-medium text-rose-900 underline dark:text-rose-200"
-          >
-            Open the sheet
-          </a>
+          {SHEET_ID && (
+            <a
+              href={SHEET_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-block text-sm font-medium text-rose-900 underline dark:text-rose-200"
+            >
+              Open the sheet
+            </a>
+          )}
         </div>
       </main>
     );
   }
 
-  return <DashboardClient dataset={dataset} sheetUrl={SHEET_URL} />;
+  return <DashboardClient dataset={dataset} />;
 }

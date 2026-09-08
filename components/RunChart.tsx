@@ -126,18 +126,18 @@ export default function RunChart({ data }: { data: RunChartResult }) {
               <span
                 className={`font-semibold ${s.direction === "above" ? good : bad}`}
               >
-                Shift {s.direction} the median
+                Shift {s.direction} the median:
               </span>{" "}
-              — {points[s.start]?.label} to {points[s.end]?.label} (
+              {points[s.start]?.label} to {points[s.end]?.label} (
               {s.end - s.start + 1} services)
             </li>
           ))}
           {data.trends.map((tr, idx) => (
             <li key={`trend-${idx}`}>
               <span className={`font-semibold ${tr.direction === "up" ? good : bad}`}>
-                {tr.direction === "up" ? "Rising" : "Falling"} trend
+                {tr.direction === "up" ? "Rising" : "Falling"} trend:
               </span>{" "}
-              — {points[tr.start]?.label} to {points[tr.end]?.label} (
+              {points[tr.start]?.label} to {points[tr.end]?.label} (
               {tr.end - tr.start + 1} services)
             </li>
           ))}

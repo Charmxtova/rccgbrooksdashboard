@@ -41,7 +41,7 @@ const ALIASES: Record<string, string> = {
   "femi luther a": FEMI,
   "femi": FEMI,
 
-  // --- Pastor John Isiekwene (~15) — last two are misspellings ---
+  // --- Pastor John Isiekwene (~15), last two are misspellings ---
   "john isiekwene": JOHN,
   "john isikwene": JOHN,
   "john itriekwene": JOHN,
@@ -71,10 +71,10 @@ const ALIASES: Record<string, string> = {
  * These stay as separate entries on the dashboard and are surfaced for review.
  */
 export const UNCERTAIN: { raw: string; note: string }[] = [
-  { raw: "Seun Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe — a misspelling of Segun, or a different person?" },
-  { raw: "Bro Sola Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe — related, but listed without the Pastor title." },
-  { raw: "Ufuoma Usen", note: "First name resembles Ufooma Luther-Abegunde but the surname differs — kept separate." },
-  { raw: "Falade Bukola / Olumide Olanrewaju", note: "Two names in one cell — counted as a single joint entry." },
+  { raw: "Seun Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe. A misspelling of Segun, or a different person?" },
+  { raw: "Bro Sola Aderibigbe", note: "Same surname as Pastor Segun Aderibigbe, but listed without the Pastor title." },
+  { raw: "Ufuoma Usen", note: "First name resembles Ufooma Luther-Abegunde but the surname differs, so kept separate." },
+  { raw: "Falade Bukola / Olumide Olanrewaju", note: "Two names in one cell, counted as a single joint entry." },
 ];
 
 export function canonicalPreacher(raw: string | null): string | null {

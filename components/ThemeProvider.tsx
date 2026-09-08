@@ -48,7 +48,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
    * dashboard would then ignore that system setting forever after.
    *
    * A click handler is also safe from StrictMode's double invocation, unlike a
-   * state updater — a class toggle inside one would run twice and cancel out.
+   * state updater, where a class toggle would run twice and cancel itself out.
    */
   const toggle = useCallback(() => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -56,7 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, next);
     } catch {
-      // Private browsing or blocked storage — the theme still applies to this
+      // Private browsing or blocked storage. The theme still applies to this
       // page view, it just will not be remembered.
     }
   }, [theme]);

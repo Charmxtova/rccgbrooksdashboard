@@ -1,9 +1,11 @@
-# RCCG The Brooks — Attendance Dashboard
+# RCCG The Brooks, Attendance Dashboard
 
 A password-gated dashboard of service attendance for RCCG The Brooks, built with
 Next.js and read live from the church's Google Sheet. Nothing is copied into a
 database: every page load reads the sheet, so adding a row in Google Sheets is
 all it takes to update the dashboard.
+
+Live at https://rccgbrooksdashboard.vercel.app
 
 ## How the data flows
 
@@ -23,40 +25,47 @@ most once every five minutes.
 
 ## Decisions worth knowing
 
-- **Attendance = Men + Women + Children**, not the typed `TOTAL` column. Six
+These are applied silently in the data layer. They are not shown in the UI, so
+they are recorded here instead.
+
+- **Attendance is Men + Women + Children**, not the typed `TOTAL` column. Six
   rows disagree with their own breakdown (16 Jul 2023 records a total of 257
   against a breakdown summing to 187). Recomputing keeps every KPI consistent
-  with every chart. All six are listed in the dashboard's Data quality panel.
+  with every chart.
 - **Sunday is the default filter.** Sundays average about 130 and midweek
-  services about 45; plotting them on one run chart makes the median line
-  meaningless. The service filter switches between them.
+  services about 45, so plotting them on one run chart makes the median line
+  meaningless. The service dropdown switches between them.
 - **Preacher names are normalised.** The column is free text, so one person
-  appears under many spellings — "Pastor Femi Luther-Abegunde", "Pastor Femi",
-  "Femi Luther", "Pst Femi Luther Abegunde" are all the same person. The map
-  lives in [`lib/preachers.ts`](lib/preachers.ts) and is easy to edit; a few
-  ambiguous cases are deliberately left unmerged and flagged in the UI.
+  appears under many spellings: "Pastor Femi Luther-Abegunde", "Pastor Femi",
+  "Femi Luther" and "Pst Femi Luther Abegunde" are all the same person. The map
+  lives in [`lib/preachers.ts`](lib/preachers.ts) and is easy to edit. A few
+  ambiguous cases are deliberately left unmerged and listed in `UNCERTAIN` in
+  that same file.
 - **Duplicate rows are collapsed.** Every March 2025 service is entered twice in
-  the source sheet. They are counted once here and flagged as "same sheet" in
-  the Data quality panel so they can be deleted at source.
-- **New Converts has never been filled in** — that KPI shows an empty state and
-  will start working on its own once the column has data.
+  the source sheet. They are counted once here, but they are still duplicated at
+  source and worth deleting there.
+- **New Converts has never been filled in**, so that KPI was removed. The column
+  is still read and still reaches `/api/data` if it is ever populated.
 
 ## Branding and theming
 
-Colours are taken from the church logo — the teal wordmark, the orange swoosh,
+Colours are taken from the church logo: the teal wordmark, the orange swoosh,
 and the charcoal of "The" and the tagline. Those three are also the categorical
 chart palette, so Men / Women / Children read as the logo's own triad. They are
 defined once in [`tailwind.config.ts`](tailwind.config.ts) as `brand` (teal),
-`accent` (orange) and `ink` (charcoal).
+`accent` (orange) and `ink` (charcoal). The KPI cards add the green and red of
+the RCCG roundel so each card carries its own fill.
 
-**The logo**: drop the artwork at `public/logo.png` and it is picked up
-automatically — no code change. Until that file exists,
-[`components/Logo.tsx`](components/Logo.tsx) falls back to an SVG lockup built
-from the same three swooshes.
+**The logo** lives at `public/logo.jpg`. It is a JPEG on a solid white
+background, so [`components/Logo.tsx`](components/Logo.tsx) sits it inside a
+white rounded panel, which reads as deliberate in dark mode rather than looking
+like a stray white rectangle. Supplying a transparent PNG instead would let that
+panel be dropped. If the file is ever missing, the component falls back to an
+SVG lockup built from the same three swooshes.
 
-**Dark mode**: a toggle in the header, remembered per browser in
+**Dark mode** is a toggle in the header, remembered per browser in
 `localStorage`. A first-time visitor follows their operating system setting, and
-nothing is written until they actually click the toggle — so the dashboard keeps
+nothing is written until they actually click the toggle, so the dashboard keeps
 tracking their system preference rather than silently pinning a choice they
 never made. An inline script in [`app/layout.tsx`](app/layout.tsx) applies the
 theme before first paint, so there is no white flash for dark-mode users.
@@ -78,20 +87,27 @@ Detected shifts and trends are listed under the chart with their date ranges.
 
 ```bash
 npm install
-echo "DASHBOARD_PASSWORD=choose-something" > .env.local
+cp .env.example .env.local   # then fill in both values
 npm run dev
 ```
 
-The sheet must be shared as **Anyone with the link → Viewer** for the CSV export
+Do not run `npm run build` while `npm run dev` is running. The build overwrites
+the `.next` directory the dev server is serving from, and the page then loads
+with 404s on its client bundle and renders no charts.
+
+The sheet must be shared as **Anyone with the link, Viewer** for the CSV export
 to be readable. If it is not, the dashboard shows an explicit error saying so
 rather than an empty chart.
 
 ## Configuration
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `DASHBOARD_PASSWORD` | Yes | The shared password for the gate. With it unset, every request is redirected to a page saying the dashboard is not configured — it never silently falls open. |
-| `SHEET_ID` | No | Overrides the workbook id baked into `lib/sheets.ts`. |
+Both variables are required. Set them in Vercel under Settings, then Environment
+Variables, and in `.env.local` for local development.
+
+| Variable | Purpose |
+| --- | --- |
+| `DASHBOARD_PASSWORD` | The shared password for the gate. With it unset, every request is redirected to a page saying the dashboard is not configured. It never silently falls open. |
+| `SHEET_ID` | The Google Sheets workbook id, taken from the sheet URL. Kept out of the code so it is not published in this repository. |
 
 ## Layout
 
@@ -100,13 +116,13 @@ app/
   page.tsx              Server component: reads the sheet, renders the dashboard
   login/page.tsx        Password gate
   api/login|logout      Sets and clears the session cookie
-  api/data              The merged dataset as JSON, if it is ever needed elsewhere
+  api/data              The merged dataset as JSON, including data-quality notes
 lib/
   sheets.ts             Fetches both tabs as CSV
   csv.ts                RFC-4180 parser (themes contain commas)
   transform.ts          Normalise, merge, dedupe, flag problems
-  preachers.ts          Preacher name map — edit this one by hand
+  preachers.ts          Preacher name map, edit this one by hand
   aggregate.ts          KPIs, run-chart rules, groupings
-components/             Charts, KPI cards, data quality panel
+components/             Charts, KPI cards, theme provider
 middleware.ts           Redirects anonymous requests to /login
 ```

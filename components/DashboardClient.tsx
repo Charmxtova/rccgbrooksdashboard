@@ -16,7 +16,6 @@ import {
 import type { Dataset, ServiceDay } from "@/lib/types";
 import { Card } from "./ui";
 import { SimpleBar, SimplePie } from "./Charts";
-import DataQualityPanel from "./DataQualityPanel";
 import KpiCards from "./KpiCards";
 import Logo from "./Logo";
 import RunChart from "./RunChart";
@@ -26,15 +25,9 @@ import { useChartTheme } from "./ThemeProvider";
 type DayFilter = ServiceDay | "All";
 type PeriodFilter = "all" | "12m" | string; // string = a four-digit year
 
-export default function DashboardClient({
-  dataset,
-  sheetUrl,
-}: {
-  dataset: Dataset;
-  sheetUrl: string;
-}) {
-  // Sunday by default: Sundays average ~130 and midweek services ~45, so mixing
-  // them makes the median line meaningless.
+export default function DashboardClient({ dataset }: { dataset: Dataset }) {
+  // Sunday by default: Sundays average about 130 and midweek services about 45,
+  // so mixing them makes the median line meaningless.
   const [day, setDay] = useState<DayFilter>("Sunday");
   const [period, setPeriod] = useState<PeriodFilter>("all");
   const chart = useChartTheme();
@@ -83,6 +76,7 @@ export default function DashboardClient({
 
   const latest = dataset.services[dataset.services.length - 1];
   const scopeLabel = day === "All" ? "all services" : `${day} services`;
+  const scopeWord = day === "All" ? "" : `${day} `;
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
@@ -91,12 +85,13 @@ export default function DashboardClient({
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Logo />
-            <div className="hidden border-l border-brand-100 pl-4 sm:block dark:border-night-700">
-              <p className="text-sm font-semibold text-ink-700 dark:text-slate-100">
+            <div>
+              <p className="text-base font-bold tracking-tight text-ink-700 dark:text-slate-50">
                 Attendance Dashboard
               </p>
               <p className="text-xs text-ink-500 dark:text-slate-400">
-                {latest ? `Latest service ${formatDate(latest.date)}` : "No services yet"}
+                RCCG The Brooks
+                {latest ? `, latest service ${formatDate(latest.date)}` : ""}
               </p>
             </div>
           </div>
@@ -122,33 +117,37 @@ export default function DashboardClient({
       </header>
 
       {/* ------------------------------------------------------ filters */}
-      <div className="card mb-6 flex flex-wrap items-center gap-x-6 gap-y-3 p-3 sm:p-4">
-        <FilterGroup
-          label="Service"
-          options={[
-            ...dayOptions.map((d) => ({ value: d as string, label: d })),
-            { value: "All", label: "All" },
-          ]}
-          value={day}
-          onChange={(v) => setDay(v as DayFilter)}
-        />
-        <FilterGroup
-          label="Period"
-          options={[
-            { value: "all", label: "All time" },
-            { value: "12m", label: "Last 12 months" },
-            ...years.map((y) => ({ value: y, label: y })),
-          ]}
-          value={period}
-          onChange={setPeriod}
-        />
-        <p className="ml-auto text-xs text-ink-500 dark:text-slate-400">
-          Showing{" "}
-          <span className="font-semibold text-ink-700 dark:text-slate-100">
-            {filtered.length}
-          </span>{" "}
-          {scopeLabel}
-        </p>
+      <div className="card mb-6 p-4">
+        <div className="flex flex-wrap items-end gap-4">
+          <SelectFilter
+            id="service-filter"
+            label="Service"
+            value={day}
+            onChange={(v) => setDay(v as DayFilter)}
+            options={[
+              ...dayOptions.map((d) => ({ value: d as string, label: d })),
+              { value: "All", label: "All services" },
+            ]}
+          />
+          <SelectFilter
+            id="period-filter"
+            label="Period"
+            value={period}
+            onChange={setPeriod}
+            options={[
+              { value: "all", label: "All time" },
+              { value: "12m", label: "Last 12 months" },
+              ...years.map((y) => ({ value: y, label: y })),
+            ]}
+          />
+          <p className="ml-auto pb-2 text-xs text-ink-500 dark:text-slate-400">
+            Showing{" "}
+            <span className="font-semibold text-ink-700 dark:text-slate-100">
+              {filtered.length}
+            </span>{" "}
+            {scopeLabel}
+          </p>
+        </div>
       </div>
 
       {/* --------------------------------------------------------- KPIs */}
@@ -158,7 +157,7 @@ export default function DashboardClient({
       <div className="mt-6">
         <Card
           title="Attendance run chart"
-          subtitle={`Every ${scopeLabel.replace(" services", "")} service in date order, against the median. Shifts and trends are flagged below the chart.`}
+          subtitle={`Every ${scopeWord}service in date order, against the median. Shifts and trends are listed below the chart.`}
         >
           <RunChart data={runChart} />
         </Card>
@@ -170,7 +169,11 @@ export default function DashboardClient({
           title="Average attendance by month"
           subtitle={`Mean attendance per month across ${scopeLabel}`}
         >
-          <SimpleBar data={monthly} valueLabel="Average attendance" countLabel="Services in month" />
+          <SimpleBar
+            data={monthly}
+            valueLabel="Average attendance"
+            countLabel="Services in month"
+          />
         </Card>
 
         <Card
@@ -194,14 +197,14 @@ export default function DashboardClient({
 
         <Card
           title="Service mix"
-          subtitle="How many of each service type were held — ignores the service filter"
+          subtitle="How many of each service type were held (ignores the service filter)"
         >
           <SimplePie data={serviceMix} />
         </Card>
 
         <Card
           title="Average attendance by service type"
-          subtitle="Sunday against midweek — ignores the service filter"
+          subtitle="Sunday against midweek (ignores the service filter)"
         >
           <SimpleBar
             data={serviceAverages}
@@ -237,56 +240,43 @@ export default function DashboardClient({
           />
         </Card>
       </div>
-
-      {/* ------------------------------------------------ data quality */}
-      <div className="mt-6">
-        <DataQualityPanel quality={dataset.quality} sheetUrl={sheetUrl} />
-      </div>
-
-      <footer className="mt-8 border-t border-brand-100 pt-4 text-xs text-ink-500 dark:border-night-700 dark:text-slate-400">
-        <p>
-          Built from the church attendance sheet — the hand-entered report and the
-          Google Form responses, combined. Attendance totals are Men + Women +
-          Children.
-        </p>
-      </footer>
     </main>
   );
 }
 
-function FilterGroup({
+function SelectFilter({
+  id,
   label,
-  options,
   value,
   onChange,
+  options,
 }: {
+  id: string;
   label: string;
-  options: { value: string; label: string }[];
   value: string;
   onChange: (v: string) => void;
+  options: { value: string; label: string }[];
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-slate-400">
+    <div className="min-w-[150px]">
+      <label
+        htmlFor={id}
+        className="mb-1 block text-xs font-medium text-ink-600 dark:text-slate-300"
+      >
         {label}
-      </span>
-      <div className="flex flex-wrap gap-1">
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-brand-200 bg-white px-3 py-2 text-sm text-ink-700 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-night-600 dark:bg-night-800 dark:text-slate-100 dark:focus:ring-brand-900"
+      >
         {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            aria-pressed={value === opt.value}
-            className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-              value === opt.value
-                ? "bg-brand-500 text-white shadow-sm dark:bg-brand-600"
-                : "bg-brand-50 text-ink-600 hover:bg-brand-100 dark:bg-night-800 dark:text-slate-300 dark:hover:bg-night-700"
-            }`}
-          >
+          <option key={opt.value} value={opt.value}>
             {opt.label}
-          </button>
+          </option>
         ))}
-      </div>
+      </select>
     </div>
   );
 }
