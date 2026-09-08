@@ -35,6 +35,7 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
   // so mixing them makes the median line meaningless.
   const [day, setDay] = useState<DayFilter>("Sunday");
   const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [month, setMonth] = useState(""); // "" = every month, else "YYYY-MM"
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const chart = useChartTheme();
@@ -74,14 +75,33 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
     return dataset.services.filter((s) => s.date.startsWith(period));
   }, [dataset.services, period]);
 
-  // The date range narrows whatever the period already selected, so the two
-  // compose rather than fight each other.
+  // Only offer months that actually exist inside the chosen period, so the
+  // dropdown can never select a month with nothing in it.
+  const monthOptions = useMemo(() => {
+    const keys = [...new Set(periodFiltered.map((s) => s.date.slice(0, 7)))];
+    return keys.sort((a, b) => b.localeCompare(a));
+  }, [periodFiltered]);
+
+  // Switching period can strip the selected month out of the list. Falling back
+  // to "every month" beats leaving a stale month silently filtering to nothing.
+  const activeMonth = monthOptions.includes(month) ? month : "";
+
+  const monthFiltered = useMemo(
+    () =>
+      activeMonth
+        ? periodFiltered.filter((s) => s.date.startsWith(activeMonth))
+        : periodFiltered,
+    [periodFiltered, activeMonth],
+  );
+
+  // The date range narrows whatever the period and month already selected, so
+  // the filters compose rather than fight each other.
   const dateFiltered = useMemo(() => {
-    if (!from && !to) return periodFiltered;
-    return periodFiltered.filter(
+    if (!from && !to) return monthFiltered;
+    return monthFiltered.filter(
       (s) => (!from || s.date >= from) && (!to || s.date <= to),
     );
-  }, [periodFiltered, from, to]);
+  }, [monthFiltered, from, to]);
 
   const filtered = useMemo(
     () => (day === "All" ? dateFiltered : dateFiltered.filter((s) => s.day === day)),
@@ -179,6 +199,16 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
               { value: "all", label: "All time" },
               { value: "12m", label: "Last 12 months" },
               ...years.map((y) => ({ value: y, label: y })),
+            ]}
+          />
+          <SelectFilter
+            id="month-filter"
+            label="Month"
+            value={activeMonth}
+            onChange={setMonth}
+            options={[
+              { value: "", label: "All months" },
+              ...monthOptions.map((m) => ({ value: m, label: formatMonthLong(m) })),
             ]}
           />
           <DateFilter
@@ -380,6 +410,15 @@ function DateFilter({
       />
     </div>
   );
+}
+
+/** "2026-09" becomes "September 2026", spelled out for an unambiguous dropdown. */
+function formatMonthLong(ym: string): string {
+  return new Date(`${ym}-01T12:00:00Z`).toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 const LABEL = "mb-1 block text-xs font-medium text-ink-600 dark:text-slate-300";
