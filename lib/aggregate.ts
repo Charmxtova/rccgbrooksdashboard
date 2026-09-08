@@ -31,19 +31,6 @@ export interface Kpi {
   tone: KpiTone;
 }
 
-/**
- * Sunday school and first timers are blank on a lot of rows, so both figures
- * cover only part of the range. Blanks are never counted as zero, because that
- * would drag an average down and make a well attended class look poorly
- * attended. This spells out how many services the number actually covers.
- */
-function coverageHint(kind: "Average" | "Total", recorded: number, all: number): string {
-  if (recorded === 0) return "Not filled in for any of these services";
-  const blank = all - recorded;
-  if (blank === 0) return `${kind} across all ${all} services`;
-  return `${kind} across the ${recorded} services where it was filled in. ${blank} left blank.`;
-}
-
 export function buildKpis(services: ServiceRecord[]): Kpi[] {
   const withTotals = attended(services);
   const totals = withTotals.map((s) => s.total!);
@@ -108,14 +95,22 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       label: "First timers",
       value: firstTimers.length ? firstTimers.reduce((a, b) => a + b, 0) : null,
       deltaPct: null,
-      hint: coverageHint("Total", firstTimers.length, services.length),
+      // The sheet never records an explicit zero, so a service that has a
+      // number is a service that had first timers.
+      hint: firstTimers.length
+        ? `Total across ${firstTimers.length} services with first timers present`
+        : "No first timers recorded for these services",
       tone: "red",
     },
     {
-      label: "Sunday school",
-      value: sundaySchool.length ? Math.round(mean(sundaySchool)!) : null,
+      label: "Youth Interactive Class",
+      value: sundaySchool.length
+        ? sundaySchool.reduce((a, b) => a + b, 0)
+        : null,
       deltaPct: null,
-      hint: coverageHint("Average", sundaySchool.length, services.length),
+      hint: sundaySchool.length
+        ? `Total across ${sundaySchool.length} services in which Sunday School was held`
+        : "Not recorded for these services",
       tone: "amber",
     },
   ];
