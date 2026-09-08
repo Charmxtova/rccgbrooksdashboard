@@ -31,6 +31,19 @@ export interface Kpi {
   tone: KpiTone;
 }
 
+/**
+ * Sunday school and first timers are blank on a lot of rows, so both figures
+ * cover only part of the range. Blanks are never counted as zero, because that
+ * would drag an average down and make a well attended class look poorly
+ * attended. This spells out how many services the number actually covers.
+ */
+function coverageHint(kind: "Average" | "Total", recorded: number, all: number): string {
+  if (recorded === 0) return "Not filled in for any of these services";
+  const blank = all - recorded;
+  if (blank === 0) return `${kind} across all ${all} services`;
+  return `${kind} across the ${recorded} services where it was filled in. ${blank} left blank.`;
+}
+
 export function buildKpis(services: ServiceRecord[]): Kpi[] {
   const withTotals = attended(services);
   const totals = withTotals.map((s) => s.total!);
@@ -95,14 +108,14 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
       label: "First timers",
       value: firstTimers.length ? firstTimers.reduce((a, b) => a + b, 0) : null,
       deltaPct: null,
-      hint: `Recorded at ${firstTimers.length} of ${services.length} services`,
+      hint: coverageHint("Total", firstTimers.length, services.length),
       tone: "red",
     },
     {
       label: "Sunday school",
       value: sundaySchool.length ? Math.round(mean(sundaySchool)!) : null,
       deltaPct: null,
-      hint: `Average, from ${sundaySchool.length} of ${services.length} services`,
+      hint: coverageHint("Average", sundaySchool.length, services.length),
       tone: "amber",
     },
   ];
