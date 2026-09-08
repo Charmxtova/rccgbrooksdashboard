@@ -1,27 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { formatDate, median } from "@/lib/aggregate";
 import { compareInsights, groupStats, overlaySeries } from "@/lib/compare";
 import { applyFilters, DEFAULT_FILTERS, describeFilters, type FilterState } from "@/lib/filters";
 import type { Dataset } from "@/lib/types";
 import CompareInsights from "./CompareInsights";
+import CompareOverlay from "./CompareOverlay";
 import CompareTable, { type MetricSection } from "./CompareTable";
 import FilterControls from "./FilterControls";
 import SiteHeader from "./SiteHeader";
-import { useChartTheme } from "./ThemeProvider";
-import { Card, ChartTooltipShell, EmptyChart } from "./ui";
+import { Card } from "./ui";
 
 /** Set A is teal, Set B is orange, matching the two logo swooshes. */
 const A_TEXT = "text-brand-600 dark:text-brand-300";
@@ -30,7 +18,6 @@ const B_TEXT = "text-accent-600 dark:text-accent-400";
 export default function CompareClient({ dataset }: { dataset: Dataset }) {
   const [a, setA] = useState<FilterState>({ ...DEFAULT_FILTERS, period: "2025" });
   const [b, setB] = useState<FilterState>({ ...DEFAULT_FILTERS, period: "2026" });
-  const t = useChartTheme();
 
   const rowsA = useMemo(() => applyFilters(dataset.services, a), [dataset.services, a]);
   const rowsB = useMemo(() => applyFilters(dataset.services, b), [dataset.services, b]);
@@ -187,86 +174,9 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
       <div className="mt-6">
         <Card
           title="Attendance overlaid"
-          subtitle="Each group plotted in its own order, service 1 against service 1, so ranges of different lengths still line up. Dashed lines are each group's median."
+          subtitle="Each group plotted in its own order, service 1 against service 1, so ranges of different lengths still line up"
         >
-          {overlay.length === 0 ? (
-            <EmptyChart message="Neither group has any recorded attendance." />
-          ) : (
-            <div className="h-[340px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={overlay} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={t.grid} vertical={false} />
-                  <XAxis
-                    dataKey="i"
-                    tick={{ fontSize: 11, fill: t.axis }}
-                    tickLine={false}
-                    axisLine={{ stroke: t.axisLine }}
-                    minTickGap={20}
-                    label={{
-                      value: "Service number within each group",
-                      position: "insideBottom",
-                      offset: -2,
-                      fill: t.axis,
-                      fontSize: 11,
-                    }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: t.axis }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={44}
-                  />
-                  <Tooltip content={<OverlayTooltip />} />
-                  <Legend
-                    verticalAlign="top"
-                    height={26}
-                    iconType="plainline"
-                    formatter={(v: string) => (
-                      <span className="text-xs text-ink-600 dark:text-slate-300">{v}</span>
-                    )}
-                  />
-                  {medA !== null && (
-                    <ReferenceLine y={medA} stroke={t.primary} strokeDasharray="5 4" strokeWidth={1.4} />
-                  )}
-                  {medB !== null && (
-                    <ReferenceLine y={medB} stroke={t.accent} strokeDasharray="5 4" strokeWidth={1.4} />
-                  )}
-                  <Line
-                    type="monotone"
-                    dataKey="a"
-                    name="Set A"
-                    stroke={t.primary}
-                    strokeWidth={2}
-                    dot={false}
-                    connectNulls
-                    isAnimationActive={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="b"
-                    name="Set B"
-                    stroke={t.accent}
-                    strokeWidth={2}
-                    dot={false}
-                    connectNulls
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <p className="mt-3 border-t border-brand-100 pt-3 text-xs text-ink-500 dark:border-night-700 dark:text-slate-400">
-            Set A covers{" "}
-            {statsA.firstDate
-              ? `${formatDate(statsA.firstDate)} to ${formatDate(statsA.lastDate!)}`
-              : "nothing"}
-            . Set B covers{" "}
-            {statsB.firstDate
-              ? `${formatDate(statsB.firstDate)} to ${formatDate(statsB.lastDate!)}`
-              : "nothing"}
-            .
-          </p>
+          <CompareOverlay points={overlay} statsA={statsA} statsB={statsB} />
         </Card>
       </div>
     </main>
@@ -317,16 +227,3 @@ function GroupPanel({
   );
 }
 
-function OverlayTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <ChartTooltipShell>
-      <p className="font-semibold text-ink-700 dark:text-slate-100">Service {label}</p>
-      {payload.map((p: any) => (
-        <p key={p.dataKey} className="mt-1" style={{ color: p.stroke }}>
-          {p.name}: <span className="font-semibold">{p.value ?? "n/a"}</span>
-        </p>
-      ))}
-    </ChartTooltipShell>
-  );
-}

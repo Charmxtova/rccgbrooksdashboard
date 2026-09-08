@@ -80,6 +80,10 @@ Two decisions worth knowing:
   sits against group B's first service. Comparing 51 Sundays in 2025 with 24
   Wednesdays spread over three years has no shared time axis, so a date axis
   would leave one line stranded at one end of the chart.
+- **The overlay draws dots, and that is load bearing.** A group holding a single
+  service renders nothing at all without them, because a line needs two points
+  to make a segment, so the group looks empty when it is not. Dots are dropped
+  only once a series passes 80 points and they stop being readable.
 - **The insights are computed, never inferred.** Each sentence in
   [`lib/compare.ts`](lib/compare.ts) restates arithmetic, so it cannot overstate
   what the data shows. Where a figure is missing on one side, the comparison is
