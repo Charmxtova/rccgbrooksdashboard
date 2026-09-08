@@ -14,25 +14,26 @@ import {
   YAxis,
 } from "recharts";
 import type { Bucket } from "@/lib/aggregate";
-import { CHART_COLORS, EmptyChart, PIE_PALETTE } from "./ui";
+import { useChartTheme } from "./ThemeProvider";
+import { ChartTooltipShell, EmptyChart } from "./ui";
 
-const AXIS = { fontSize: 11, fill: "#64748b" };
+export type Tone = "primary" | "accent" | "neutral";
 
 function BarTooltip({ active, payload, valueLabel, countLabel }: any) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload as Bucket;
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg">
-      <p className="font-semibold text-slate-900">{p.name}</p>
-      <p className="mt-1 text-slate-700">
+    <ChartTooltipShell>
+      <p className="font-semibold text-ink-700 dark:text-slate-100">{p.name}</p>
+      <p className="mt-1 text-ink-600 dark:text-slate-300">
         {valueLabel}: <span className="font-semibold">{p.value}</span>
       </p>
       {p.count !== undefined && countLabel && (
-        <p className="text-slate-500">
+        <p className="text-ink-500 dark:text-slate-400">
           {countLabel}: {p.count}
         </p>
       )}
-    </div>
+    </ChartTooltipShell>
   );
 }
 
@@ -40,7 +41,7 @@ export function SimpleBar({
   data,
   valueLabel,
   countLabel,
-  color = CHART_COLORS.primary,
+  tone = "primary",
   layout = "horizontal",
   height = 260,
   emptyMessage = "No data in this range.",
@@ -48,14 +49,18 @@ export function SimpleBar({
   data: Bucket[];
   valueLabel: string;
   countLabel?: string;
-  color?: string;
+  tone?: Tone;
   layout?: "horizontal" | "vertical";
   height?: number;
   emptyMessage?: string;
 }) {
+  const t = useChartTheme();
   if (data.length === 0) return <EmptyChart message={emptyMessage} />;
 
   const vertical = layout === "vertical";
+  const fill =
+    tone === "accent" ? t.accent : tone === "neutral" ? t.children : t.primary;
+  const axisTick = { fontSize: 11, fill: t.axis };
 
   return (
     <div style={{ height }} className="w-full">
@@ -71,17 +76,17 @@ export function SimpleBar({
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#e2e8f0"
+            stroke={t.grid}
             vertical={vertical}
             horizontal={!vertical}
           />
           {vertical ? (
             <>
-              <XAxis type="number" tick={AXIS} tickLine={false} axisLine={false} />
+              <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} />
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={AXIS}
+                tick={axisTick}
                 tickLine={false}
                 axisLine={false}
                 width={150}
@@ -91,23 +96,21 @@ export function SimpleBar({
             <>
               <XAxis
                 dataKey="name"
-                tick={AXIS}
+                tick={axisTick}
                 tickLine={false}
-                axisLine={{ stroke: "#e2e8f0" }}
+                axisLine={{ stroke: t.axisLine }}
                 minTickGap={16}
               />
-              <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} />
+              <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} />
             </>
           )}
           <Tooltip
-            cursor={{ fill: "rgba(148,163,184,0.12)" }}
-            content={
-              <BarTooltip valueLabel={valueLabel} countLabel={countLabel} />
-            }
+            cursor={{ fill: t.cursor }}
+            content={<BarTooltip valueLabel={valueLabel} countLabel={countLabel} />}
           />
           <Bar
             dataKey="value"
-            fill={color}
+            fill={fill}
             radius={vertical ? [0, 4, 4, 0] : [4, 4, 0, 0]}
             isAnimationActive={false}
           />
@@ -122,28 +125,32 @@ function PieTooltip({ active, payload, total }: any) {
   const p = payload[0].payload as Bucket;
   const pct = total > 0 ? ((p.value / total) * 100).toFixed(1) : "0";
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-lg">
-      <p className="font-semibold text-slate-900">{p.name}</p>
-      <p className="mt-1 text-slate-700">
+    <ChartTooltipShell>
+      <p className="font-semibold text-ink-700 dark:text-slate-100">{p.name}</p>
+      <p className="mt-1 text-ink-600 dark:text-slate-300">
         {p.value.toLocaleString("en-GB")}{" "}
-        <span className="text-slate-500">({pct}%)</span>
+        <span className="text-ink-500 dark:text-slate-400">({pct}%)</span>
       </p>
-    </div>
+    </ChartTooltipShell>
   );
 }
 
 export function SimplePie({
   data,
-  colors = PIE_PALETTE,
+  colors,
   height = 260,
   emptyMessage = "No data in this range.",
 }: {
   data: Bucket[];
+  /** Defaults to the themed categorical palette. */
   colors?: string[];
   height?: number;
   emptyMessage?: string;
 }) {
+  const t = useChartTheme();
   if (data.length === 0) return <EmptyChart message={emptyMessage} />;
+
+  const swatches = colors ?? t.palette;
   const total = data.reduce((a, b) => a + b.value, 0);
 
   return (
@@ -159,10 +166,12 @@ export function SimplePie({
             innerRadius="52%"
             outerRadius="76%"
             paddingAngle={2}
+            stroke={t.dark ? "#0f1b1f" : "#ffffff"}
+            strokeWidth={2}
             isAnimationActive={false}
           >
             {data.map((entry, i) => (
-              <Cell key={entry.name} fill={colors[i % colors.length]} />
+              <Cell key={entry.name} fill={swatches[i % swatches.length]} />
             ))}
           </Pie>
           <Tooltip content={<PieTooltip total={total} />} />
@@ -171,7 +180,7 @@ export function SimplePie({
             height={28}
             iconType="circle"
             formatter={(value: string) => (
-              <span className="text-xs text-slate-600">{value}</span>
+              <span className="text-xs text-ink-600 dark:text-slate-300">{value}</span>
             )}
           />
         </PieChart>

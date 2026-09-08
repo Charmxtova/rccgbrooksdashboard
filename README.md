@@ -41,6 +41,31 @@ most once every five minutes.
 - **New Converts has never been filled in** — that KPI shows an empty state and
   will start working on its own once the column has data.
 
+## Branding and theming
+
+Colours are taken from the church logo — the teal wordmark, the orange swoosh,
+and the charcoal of "The" and the tagline. Those three are also the categorical
+chart palette, so Men / Women / Children read as the logo's own triad. They are
+defined once in [`tailwind.config.ts`](tailwind.config.ts) as `brand` (teal),
+`accent` (orange) and `ink` (charcoal).
+
+**The logo**: drop the artwork at `public/logo.png` and it is picked up
+automatically — no code change. Until that file exists,
+[`components/Logo.tsx`](components/Logo.tsx) falls back to an SVG lockup built
+from the same three swooshes.
+
+**Dark mode**: a toggle in the header, remembered per browser in
+`localStorage`. A first-time visitor follows their operating system setting, and
+nothing is written until they actually click the toggle — so the dashboard keeps
+tracking their system preference rather than silently pinning a choice they
+never made. An inline script in [`app/layout.tsx`](app/layout.tsx) applies the
+theme before first paint, so there is no white flash for dark-mode users.
+
+Chart colours cannot be Tailwind classes because Recharts needs literal values,
+so they come from `useChartTheme()` in
+[`components/ThemeProvider.tsx`](components/ThemeProvider.tsx) and swap with the
+theme.
+
 ## Run charts
 
 The main chart follows the usual QI run-chart rules rather than just drawing a
