@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { compareInsights, groupStats, overlaySeries } from "@/lib/compare";
+import { compareInsights, groupStats, overlaySeries, type GroupStats } from "@/lib/compare";
 import { applyFilters, DEFAULT_FILTERS, describeFilters, type FilterState } from "@/lib/filters";
 import type { Dataset } from "@/lib/types";
 import CompareInsights from "./CompareInsights";
+import CoverageNote, { CoverageLine } from "./CoverageNote";
+import ExportButton from "./ExportButton";
 import CompareOverlay from "./CompareOverlay";
 import CompareTable, { type MetricSection } from "./CompareTable";
 import FilterControls from "./FilterControls";
@@ -76,7 +78,7 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
       ],
     },
     {
-      title: "Who was in the room",
+      title: "Attendance distribution",
       rows: [
         { label: "Men", a: statsA.menShare, b: statsB.menShare, dp: 0, suffix: "%" },
         { label: "Women", a: statsA.womenShare, b: statsB.womenShare, dp: 0, suffix: "%" },
@@ -130,8 +132,10 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
           name="Set A"
           accent="border-l-4 border-l-brand-500"
           textClass={A_TEXT}
+          dotClass="bg-brand-500"
           label={labelA}
           count={rowsA.length}
+          stats={statsA}
           services={dataset.services}
           value={a}
           onChange={setA}
@@ -141,8 +145,10 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
           name="Set B"
           accent="border-l-4 border-l-accent-500"
           textClass={B_TEXT}
+          dotClass="bg-accent-500"
           label={labelB}
           count={rowsB.length}
+          stats={statsB}
           services={dataset.services}
           value={b}
           onChange={setB}
@@ -152,10 +158,12 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
 
       {/* ----------------------------------------------------- insights */}
       <div className="mt-6">
-        <Card
-          title="Key insights"
-          subtitle="Worked out from the two groups above. Every line restates the numbers, nothing is inferred."
-        >
+        <Card title="Key insights">
+          <CoverageNote
+            statsA={statsA}
+            statsB={statsB}
+            className="mb-4 border-b border-brand-100 pb-3 dark:border-night-700"
+          />
           <CompareInsights insights={insights} />
         </Card>
       </div>
@@ -165,7 +173,22 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
         <Card
           title="Side by side"
           subtitle="An n/a means that figure was never recorded for the group"
+          action={
+            <ExportButton
+              labelA={labelA}
+              labelB={labelB}
+              statsA={statsA}
+              statsB={statsB}
+              sections={sections}
+              insights={insights}
+            />
+          }
         >
+          <CoverageNote
+            statsA={statsA}
+            statsB={statsB}
+            className="mb-4 border-b border-brand-100 pb-3 dark:border-night-700"
+          />
           <CompareTable sections={sections} />
         </Card>
       </div>
@@ -189,8 +212,10 @@ function GroupPanel({
   name,
   accent,
   textClass,
+  dotClass,
   label,
   count,
+  stats,
   services,
   value,
   onChange,
@@ -199,8 +224,10 @@ function GroupPanel({
   name: string;
   accent: string;
   textClass: string;
+  dotClass: string;
   label: string;
   count: number;
+  stats: GroupStats;
   services: Dataset["services"];
   value: FilterState;
   onChange: (f: FilterState) => void;
@@ -212,9 +239,10 @@ function GroupPanel({
         <h2 className={`text-sm font-bold ${textClass}`}>{name}</h2>
         <p className="text-xs text-ink-500 dark:text-slate-400">
           <span className="font-semibold text-ink-700 dark:text-slate-100">{count}</span>{" "}
-          services
+          {count === 1 ? "service" : "services"}
         </p>
       </div>
+
       <FilterControls
         services={services}
         value={value}
@@ -222,7 +250,11 @@ function GroupPanel({
         idPrefix={idPrefix}
         compact
       />
-      <p className="mt-3 text-xs text-ink-500 dark:text-slate-400">{label}</p>
+
+      <div className="mt-3 space-y-1 border-t border-brand-100 pt-3 text-xs text-ink-500 dark:border-night-700 dark:text-slate-400">
+        <p>{label}</p>
+        <CoverageLine name={name} stats={stats} dotClass={dotClass} />
+      </div>
     </section>
   );
 }

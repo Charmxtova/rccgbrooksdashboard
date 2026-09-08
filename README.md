@@ -72,7 +72,17 @@ orange throughout, matching the two logo swooshes.
 
 It shows three things: computed insights in plain sentences, a side by side
 table of eleven metrics with the difference, and both groups' attendance
-overlaid on one chart.
+overlaid on one chart. Every card repeats which dates each group covers, since
+none of the numbers mean anything without that and scrolling back to the
+pickers to check is a poor substitute.
+
+**Export CSV** on the Side by side card downloads the whole comparison: both
+group definitions and date ranges, every metric with its difference, and the
+insight sentences. Numbers are written unformatted so a spreadsheet can total
+and chart them, with any percent sign moved into the metric name rather than
+glued to the value. The file is quoted per RFC 4180, which matters because the
+insight sentences contain commas, and carries a byte order mark so Excel opens
+it as UTF-8.
 
 Two decisions worth knowing:
 
@@ -182,6 +192,7 @@ lib/
   aggregate.ts          KPIs, run-chart rules, groupings
   filters.ts            Filter state and the logic both pages share
   compare.ts            Group statistics and the computed insight sentences
+  exportCsv.ts          RFC 4180 quoting and the comparison CSV builder
 components/             Charts, KPI cards, theme provider
 middleware.ts           Redirects anonymous requests to /login
 ```

@@ -10,9 +10,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatDate } from "@/lib/aggregate";
 import type { GroupStats } from "@/lib/compare";
 import { useChartTheme } from "./ThemeProvider";
+import CoverageNote from "./CoverageNote";
 import { ChartTooltipShell, EmptyChart } from "./ui";
 
 interface Point {
@@ -146,10 +146,11 @@ export default function CompareOverlay({
       </div>
 
       {/* --------------------------------------------------- coverage */}
-      <div className="mt-3 grid gap-2 border-t border-brand-100 pt-3 text-xs text-ink-500 sm:grid-cols-2 dark:border-night-700 dark:text-slate-400">
-        <Coverage name="Set A" stats={statsA} dotClass="bg-brand-500" />
-        <Coverage name="Set B" stats={statsB} dotClass="bg-accent-500" />
-      </div>
+      <CoverageNote
+        statsA={statsA}
+        statsB={statsB}
+        className="mt-3 border-t border-brand-100 pt-3 dark:border-night-700"
+      />
     </div>
   );
 }
@@ -179,28 +180,6 @@ function SummaryChip({
       <span className="text-xs font-bold text-ink-800 dark:text-slate-100">{name}</span>
       <span className="text-xs text-ink-600 dark:text-slate-300">{bits.join(" · ")}</span>
     </div>
-  );
-}
-
-function Coverage({
-  name,
-  stats,
-  dotClass,
-}: {
-  name: string;
-  stats: GroupStats;
-  dotClass: string;
-}) {
-  return (
-    <p className="flex items-center gap-2">
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden />
-      <span>
-        <span className="font-semibold text-ink-700 dark:text-slate-200">{name}</span>{" "}
-        {stats.firstDate
-          ? `covers ${formatDate(stats.firstDate)} to ${formatDate(stats.lastDate!)}`
-          : "has no services in it"}
-      </span>
-    </p>
   );
 }
 

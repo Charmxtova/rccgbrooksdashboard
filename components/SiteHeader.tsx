@@ -33,10 +33,17 @@ export default function SiteHeader({
             <p className="text-base font-bold tracking-tight text-ink-700 dark:text-slate-50">
               {title}
             </p>
-            <p className="text-xs text-ink-500 dark:text-slate-400">
-              RCCG The Brooks
-              {latestDate ? `, latest service ${formatDate(latestDate)}` : ""}
-            </p>
+            <p className="text-xs text-ink-500 dark:text-slate-400">RCCG The Brooks</p>
+            {latestDate && (
+              <span className="mt-1.5 inline-flex items-center gap-2 rounded-md border border-brand-200 bg-brand-50 px-2 py-1 dark:border-night-600 dark:bg-night-800">
+                <span className="text-[11px] font-medium text-ink-500 dark:text-slate-400">
+                  Most recent service
+                </span>
+                <span className="text-[11px] font-bold text-ink-800 dark:text-slate-100">
+                  {formatDate(latestDate)}
+                </span>
+              </span>
+            )}
           </div>
         </div>
 
