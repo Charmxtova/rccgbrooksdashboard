@@ -50,15 +50,46 @@ they are recorded here instead.
 
 ## Controls
 
-- **Service** and **Period** dropdowns, plus a **From** and **To** date range.
-  The three compose: picking 2025 and a From date of 1 June gives June to
-  December 2025. A Clear dates button appears once either date is set.
+- **Service**, **Period** and **Month** dropdowns, plus a **From** and **To**
+  date range. They all compose: picking 2025 and a From date of 1 June gives
+  June to December 2025. A Clear dates button appears once either date is set.
+  Month only ever offers months that exist inside the chosen period, and falls
+  back to every month if changing the period strips the selection out, rather
+  than leaving a stale month quietly matching nothing.
 - **Enter data** opens the attendance Google Form in a new tab. It points at the
   form's public response URL, not the `/edit` editor URL, which would prompt
   people to sign in as an editor instead of letting them submit.
 - **Refresh** calls `/api/refresh`, which runs `revalidatePath("/")` and then
   re-renders. Without dropping the cache first the button would re-run the page
   against the same five minute cache and appear to do nothing.
+
+## The compare page
+
+`/compare` puts two groups of services side by side. Each group is defined with
+the same five filters as the dashboard, so a group can be a year, a month, a
+date range, one service type, or any combination. Set A is teal and Set B is
+orange throughout, matching the two logo swooshes.
+
+It shows three things: computed insights in plain sentences, a side by side
+table of eleven metrics with the difference, and both groups' attendance
+overlaid on one chart.
+
+Two decisions worth knowing:
+
+- **The overlay plots by service number, not by date.** Group A's first service
+  sits against group B's first service. Comparing 51 Sundays in 2025 with 24
+  Wednesdays spread over three years has no shared time axis, so a date axis
+  would leave one line stranded at one end of the chart.
+- **The insights are computed, never inferred.** Each sentence in
+  [`lib/compare.ts`](lib/compare.ts) restates arithmetic, so it cannot overstate
+  what the data shows. Where a figure is missing on one side, the comparison is
+  skipped rather than guessed. It warns when a group has fewer than four
+  services, since a percentage built on three numbers is close to meaningless,
+  and it says how many services in each group have no attendance recorded.
+
+Both pages share [`lib/filters.ts`](lib/filters.ts) for the filter logic and
+[`components/FilterControls.tsx`](components/FilterControls.tsx) for the
+controls, so a change to filtering behaviour only needs making once.
 
 ## Branding and theming
 
@@ -72,9 +103,9 @@ the RCCG roundel so each card carries its own fill.
 Those KPI fills are darkened versions of the logo colours. The logo teal and
 orange sit at 3.6:1 and 2.5:1 against white text, both under the 4.5:1 that WCAG
 AA asks for body text, so the raw brand colours are not used as card fills.
-Every fill in `TONE_FILL` clears 4.5:1. The three share cards reuse the same
-teal, orange and charcoal as the congregation pie so the card and the chart read
-as one split.
+Every fill in `TONE_FILL` clears 4.5:1. The change badge on each card is green
+for a rise and yellow for a fall, kept as a light chip with dark text because it
+has to stay legible on all six fills.
 
 **The logo** lives at `public/logo.jpg`. It is a JPEG on a solid white
 background, so [`components/Logo.tsx`](components/Logo.tsx) sits it inside a
@@ -137,12 +168,16 @@ app/
   login/page.tsx        Password gate
   api/login|logout      Sets and clears the session cookie
   api/data              The merged dataset as JSON, including data-quality notes
+  api/refresh           Clears the route cache for the Refresh button
+  compare/page.tsx      Two group comparison with computed insights
 lib/
   sheets.ts             Fetches both tabs as CSV
   csv.ts                RFC-4180 parser (themes contain commas)
   transform.ts          Normalise, merge, dedupe, flag problems
   preachers.ts          Preacher name map, edit this one by hand
   aggregate.ts          KPIs, run-chart rules, groupings
+  filters.ts            Filter state and the logic both pages share
+  compare.ts            Group statistics and the computed insight sentences
 components/             Charts, KPI cards, theme provider
 middleware.ts           Redirects anonymous requests to /login
 ```
