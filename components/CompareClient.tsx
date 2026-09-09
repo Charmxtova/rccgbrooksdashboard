@@ -192,13 +192,15 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
 
       {/* ----------------------------------------------------- insights */}
       <div className="mt-6">
+        {/* No CoverageNote here: the radar legend underneath carries both date
+            ranges, and it still sits above the insight cards. */}
         <Card title="Key insights">
-          <CoverageNote
+          <CompareRadar
+            axes={radar.axes}
+            skipped={radar.skipped}
             statsA={statsA}
             statsB={statsB}
-            className="mb-4 border-b border-brand-100 pb-3 dark:border-night-700"
           />
-          <CompareRadar axes={radar.axes} skipped={radar.skipped} />
           <CompareInsights insights={insights} />
         </Card>
       </div>

@@ -98,7 +98,12 @@ three shares are excluded that way: Men, Women and Children sum to about 100, so
 they move against each other rather than independently and would add three near
 identical axes without a third dimension.
 
-Note that the on screen chart carries no explanatory caption, so the
+The legend sits under the chart and carries each group's date range, so the
+colours and the period they cover are read in one place. That is why the Key
+insights card has no separate coverage note: it would repeat the legend a few
+lines above it.
+
+Note that the chart carries no explanatory caption on screen, so the
 normalisation described below is documented here rather than in the interface.
 The tooltip still shows each indicator's real figures.
 

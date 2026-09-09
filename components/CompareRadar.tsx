@@ -9,6 +9,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { formatDate } from "@/lib/aggregate";
+import type { GroupStats } from "@/lib/compare";
 import type { RadarAxis } from "@/lib/metrics";
 import { useChartTheme } from "./ThemeProvider";
 import { ChartTooltipShell } from "./ui";
@@ -16,9 +18,13 @@ import { ChartTooltipShell } from "./ui";
 export default function CompareRadar({
   axes,
   skipped,
+  statsA,
+  statsB,
 }: {
   axes: RadarAxis[];
   skipped: string[];
+  statsA: GroupStats;
+  statsB: GroupStats;
 }) {
   const t = useChartTheme();
 
@@ -35,18 +41,12 @@ export default function CompareRadar({
 
   return (
     <div className="mb-5">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
-          Indicator profile
-        </h3>
-        <div className="flex items-center gap-3">
-          <Key dotClass="bg-brand-500" label="Set A" />
-          <Key dotClass="bg-accent-500" label="Set B" />
-        </div>
-      </div>
+      <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
+        Indicator profile
+      </h3>
 
-      {/* Eleven axes need considerably more room than six, both for the shape
-          and for the labels ringing it, so the chart grows on wider screens. */}
+      {/* The shape and the labels ringing it both need room, so the chart grows
+          with the viewport rather than sitting at one fixed height. */}
       <div className="h-[380px] w-full sm:h-[460px] lg:h-[520px]">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart
@@ -84,6 +84,13 @@ export default function CompareRadar({
         </ResponsiveContainer>
       </div>
 
+      {/* The legend sits under the chart and carries each group's date range,
+          so the colours and what they cover are read in one place. */}
+      <div className="mt-3 grid gap-2 border-t border-brand-100 pt-3 sm:grid-cols-2 dark:border-night-700">
+        <Key dotClass="bg-brand-500" label="Set A" stats={statsA} />
+        <Key dotClass="bg-accent-500" label="Set B" stats={statsB} />
+      </div>
+
       {skipped.length > 0 && (
         <p className="mt-2 text-[11px] text-ink-400 dark:text-slate-500">
           Left off because one group has no figure for it:{" "}
@@ -94,12 +101,25 @@ export default function CompareRadar({
   );
 }
 
-function Key({ dotClass, label }: { dotClass: string; label: string }) {
+function Key({
+  dotClass,
+  label,
+  stats,
+}: {
+  dotClass: string;
+  label: string;
+  stats: GroupStats;
+}) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink-600 dark:text-slate-300">
-      <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden />
-      {label}
-    </span>
+    <p className="flex items-center gap-2 text-xs">
+      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dotClass}`} aria-hidden />
+      <span className="font-bold text-ink-700 dark:text-slate-100">{label}</span>
+      <span className="text-ink-500 dark:text-slate-400">
+        {stats.firstDate
+          ? `${formatDate(stats.firstDate)} to ${formatDate(stats.lastDate!)}`
+          : "no services"}
+      </span>
+    </p>
   );
 }
 
