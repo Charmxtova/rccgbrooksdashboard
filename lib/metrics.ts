@@ -18,6 +18,13 @@ export interface MetricRow {
 export interface MetricSection {
   title: string;
   rows: MetricRow[];
+  /**
+   * Defaults to true. Set false to keep a section in the table but off the
+   * radar, which suits the share rows: Men, Women and Children always sum to
+   * about 100, so they move against each other rather than independently and
+   * add three near identical axes without adding a third dimension.
+   */
+  inRadar?: boolean;
 }
 
 export interface RadarAxis {
@@ -51,6 +58,8 @@ export function radarFromSections(sections: MetricSection[]): {
   const skipped: string[] = [];
 
   for (const section of sections) {
+    if (section.inRadar === false) continue;
+
     for (const row of section.rows) {
       // An axis missing from either side would draw a dent that reads as a
       // finding rather than a gap in the sheet, so it is left off entirely.

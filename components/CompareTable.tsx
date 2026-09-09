@@ -35,19 +35,21 @@ export default function CompareTable({ sections }: { sections: MetricSection[] }
         <thead>
           <tr className="text-xs uppercase tracking-wide text-ink-500 dark:text-slate-400">
             <th className="pb-3 font-medium">Metric</th>
+            {/* Set A right aligned and Set B left aligned so the two figures
+                bracket the split bar and read as one comparison. */}
             <th className="pb-3 text-right font-medium">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-brand-500" aria-hidden />
                 Set A
               </span>
             </th>
-            <th className="pb-3 text-right font-medium">
+            <th className="w-[24%] px-4 pb-3 text-center font-medium">Split</th>
+            <th className="pb-3 text-left font-medium">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-accent-500" aria-hidden />
                 Set B
               </span>
             </th>
-            <th className="w-[26%] pb-3 pl-4 font-medium">Split</th>
             <th className="pb-3 text-right font-medium">Difference</th>
           </tr>
         </thead>
@@ -101,12 +103,13 @@ function SectionRows({ section }: { section: MetricSection }) {
             <td className="py-2.5 text-right font-bold tabular-nums text-ink-800 dark:text-slate-50">
               {show(row.a, row)}
             </td>
-            <td className="py-2.5 text-right font-bold tabular-nums text-ink-800 dark:text-slate-50">
-              {show(row.b, row)}
+
+            <td className="px-4 py-2.5 align-middle">
+              <SplitBar a={row.a} b={row.b} />
             </td>
 
-            <td className="py-2.5 pl-4 align-middle">
-              <SplitBar a={row.a} b={row.b} />
+            <td className="py-2.5 text-left font-bold tabular-nums text-ink-800 dark:text-slate-50">
+              {show(row.b, row)}
             </td>
 
             <td className="py-2.5 text-right">

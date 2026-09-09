@@ -86,11 +86,15 @@ it as UTF-8.
 
 ### The indicator profile radar
 
-Key insights opens with a radar comparing the two groups across every metric in
-the side by side table. It is built from the same rows the table renders, in
+Key insights opens with a radar comparing the two groups across the attendance
+and participation metrics from the side by side table. It is built from the same rows the table renders, in
 [`lib/metrics.ts`](lib/metrics.ts), so the two views can never drift apart: add
 a row to the table and the radar grows an axis. Radar labels are shortened via
-`radarLabel` because eleven full names collide on one ring.
+`radarLabel` because the full names collide on one ring, and a section can be
+kept out of the radar while staying in the table with `inRadar: false`. The
+three shares are excluded that way: Men, Women and Children sum to about 100, so
+they move against each other rather than independently and would add three near
+identical axes without adding a third dimension.
 
 The catch with a radar is that every axis has to share one scale, and these
 indicators do not: attendance runs into the hundreds, shares are percentages,

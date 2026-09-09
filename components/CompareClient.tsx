@@ -91,6 +91,9 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
     },
     {
       title: "Attendance distribution",
+      // Kept out of the radar: the three shares sum to about 100, so they move
+      // against each other and would add three axes without a third dimension.
+      inRadar: false,
       rows: [
         { label: "Men", a: statsA.menShare, b: statsB.menShare, dp: 0, suffix: "%" },
         { label: "Women", a: statsA.womenShare, b: statsB.womenShare, dp: 0, suffix: "%" },
