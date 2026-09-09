@@ -12,11 +12,7 @@ export default function LoginPage({
   const unconfigured = searchParams.unconfigured === "1";
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center px-4">
-      <div className="absolute right-4 top-4">
-        <ThemeToggle />
-      </div>
-
+    <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-3">
           <Logo />
@@ -70,6 +66,12 @@ export default function LoginPage({
               </button>
             </form>
           )}
+        </div>
+
+        {/* Under the card rather than in a corner: on a page this empty an
+            unlabelled icon at the far edge goes unnoticed. */}
+        <div className="mt-4 flex justify-center">
+          <ThemeToggle showLabel />
         </div>
       </div>
     </main>

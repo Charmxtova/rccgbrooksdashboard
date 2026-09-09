@@ -2,17 +2,28 @@
 
 import { useTheme } from "./ThemeProvider";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({
+  /**
+   * Shows the wording beside the icon. The header has no room for it, but on a
+   * near empty page an unlabelled icon in a corner is easy to miss entirely.
+   */
+  showLabel = false,
+}: {
+  showLabel?: boolean;
+}) {
   const { theme, toggle, ready } = useTheme();
   const dark = theme === "dark";
+  const label = dark ? "Switch to light mode" : "Switch to dark mode";
 
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-      title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-brand-100 bg-white text-ink-600 transition hover:bg-brand-50 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-300 dark:border-night-700 dark:bg-night-800 dark:text-slate-300 dark:hover:bg-night-700 dark:hover:text-brand-300"
+      aria-label={label}
+      title={label}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg border border-brand-100 bg-white text-ink-600 transition hover:bg-brand-50 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-300 dark:border-night-700 dark:bg-night-800 dark:text-slate-300 dark:hover:bg-night-700 dark:hover:text-brand-300 ${
+        showLabel ? "px-3 py-2 text-xs font-medium" : "h-9 w-9"
+      }`}
     >
       {/* Before mount the theme is unknown, so render nothing rather than the
           wrong icon flashing to the right one. */}
@@ -36,6 +47,7 @@ export default function ThemeToggle() {
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
         </svg>
       )}
+      {showLabel && ready && <span>{label}</span>}
     </button>
   );
 }
