@@ -8,3 +8,7 @@ build
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Stray scratch output from local debugging
+*.html
+*.csv
