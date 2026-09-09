@@ -1,19 +1,6 @@
 "use client";
 
-export interface MetricRow {
-  label: string;
-  a: number | null;
-  b: number | null;
-  dp: number;
-  suffix?: string;
-  /** Shown under the label when the figure needs a word of explanation. */
-  note?: string;
-}
-
-export interface MetricSection {
-  title: string;
-  rows: MetricRow[];
-}
+import type { MetricRow, MetricSection } from "@/lib/metrics";
 
 function show(v: number | null, row: MetricRow) {
   return v === null ? "n/a" : v.toFixed(row.dp) + (row.suffix ?? "");

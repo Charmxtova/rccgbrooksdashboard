@@ -1,5 +1,6 @@
 import { formatDate } from "./aggregate";
 import type { GroupStats, Insight } from "./compare";
+import type { MetricSection, RadarAxis } from "./metrics";
 
 /**
  * RFC 4180 quoting. Service themes contain commas and the insight sentences
@@ -16,16 +17,6 @@ export function toCsv(rows: (string | number | null)[][]): string {
   return rows.map((r) => r.map(cell).join(",")).join("\r\n");
 }
 
-export interface ExportSection {
-  title: string;
-  rows: {
-    label: string;
-    a: number | null;
-    b: number | null;
-    dp: number;
-    suffix?: string;
-  }[];
-}
 
 export function buildComparisonCsv({
   labelA,
@@ -34,13 +25,15 @@ export function buildComparisonCsv({
   statsB,
   sections,
   insights,
+  radar,
 }: {
   labelA: string;
   labelB: string;
   statsA: GroupStats;
   statsB: GroupStats;
-  sections: ExportSection[];
+  sections: MetricSection[];
   insights: Insight[];
+  radar: RadarAxis[];
 }): string {
   const coverage = (s: GroupStats) =>
     s.firstDate ? `${formatDate(s.firstDate)} to ${formatDate(s.lastDate!)}` : "no services";
@@ -70,6 +63,27 @@ export function buildComparisonCsv({
         row.a === null ? null : Number(row.a.toFixed(row.dp)),
         row.b === null ? null : Number(row.b.toFixed(row.dp)),
         diff,
+      ]);
+    }
+  }
+
+  if (radar.length > 0) {
+    rows.push(
+      [],
+      ["Indicator profile"],
+      [
+        "The index columns are what the radar plots. Each indicator is scaled on its own, with the leading group set to 100, so indicators measured in different units can sit on one chart.",
+      ],
+      ["Section", "Indicator", "Set A", "Set B", "Set A index", "Set B index"],
+    );
+    for (const axis of radar) {
+      rows.push([
+        axis.section,
+        axis.suffix ? `${axis.axis} (${axis.suffix})` : axis.axis,
+        Number(axis.rawA.toFixed(axis.dp)),
+        Number(axis.rawB.toFixed(axis.dp)),
+        axis.a,
+        axis.b,
       ]);
     }
   }

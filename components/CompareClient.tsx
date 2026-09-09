@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
-  buildRadar,
   compareInsights,
   groupStats,
   overlaySeries,
   type GroupStats,
 } from "@/lib/compare";
+import { radarFromSections, type MetricSection } from "@/lib/metrics";
 import { applyFilters, DEFAULT_FILTERS, describeFilters, type FilterState } from "@/lib/filters";
 import type { Dataset } from "@/lib/types";
 import CompareInsights from "./CompareInsights";
@@ -15,7 +15,7 @@ import CompareRadar from "./CompareRadar";
 import CoverageNote, { CoverageLine } from "./CoverageNote";
 import ExportButton from "./ExportButton";
 import CompareOverlay from "./CompareOverlay";
-import CompareTable, { type MetricSection } from "./CompareTable";
+import CompareTable from "./CompareTable";
 import FilterControls from "./FilterControls";
 import SiteHeader from "./SiteHeader";
 import { Card } from "./ui";
@@ -43,7 +43,6 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
   );
 
   const overlay = useMemo(() => overlaySeries(rowsA, rowsB), [rowsA, rowsB]);
-  const radar = useMemo(() => buildRadar(statsA, statsB), [statsA, statsB]);
   const medA = statsA.medianAttendance;
   const medB = statsB.medianAttendance;
 
@@ -54,18 +53,21 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
         { label: "Services", a: statsA.services, b: statsB.services, dp: 0 },
         {
           label: "Total attendance",
+          radarLabel: "Total",
           a: statsA.totalAttendance,
           b: statsB.totalAttendance,
           dp: 0,
         },
         {
           label: "Average per service",
+          radarLabel: "Average",
           a: statsA.meanAttendance,
           b: statsB.meanAttendance,
           dp: 0,
         },
         {
           label: "Median per service",
+          radarLabel: "Median",
           a: medA,
           b: medB,
           dp: 0,
@@ -73,12 +75,14 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
         },
         {
           label: "Best attended",
+          radarLabel: "Best",
           a: statsA.peak?.value ?? null,
           b: statsB.peak?.value ?? null,
           dp: 0,
         },
         {
           label: "Least attended",
+          radarLabel: "Least",
           a: statsA.low?.value ?? null,
           b: statsB.low?.value ?? null,
           dp: 0,
@@ -111,6 +115,7 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
         },
         {
           label: "Youth Interactive Class",
+          radarLabel: "Youth class",
           a: statsA.youthTotal,
           b: statsB.youthTotal,
           dp: 0,
@@ -119,6 +124,8 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
       ],
     },
   ];
+
+  const radar = radarFromSections(sections);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">
@@ -190,6 +197,7 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
               statsB={statsB}
               sections={sections}
               insights={insights}
+              radar={radar.axes}
             />
           }
         >

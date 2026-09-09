@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import type { RadarAxis } from "@/lib/compare";
+import type { RadarAxis } from "@/lib/metrics";
 import { useChartTheme } from "./ThemeProvider";
 import { ChartTooltipShell } from "./ui";
 
@@ -28,7 +28,7 @@ export default function CompareRadar({
     return (
       <div className="mb-4 rounded-lg border border-dashed border-brand-200 bg-brand-50/40 px-4 py-5 text-center text-sm text-ink-500 dark:border-night-600 dark:bg-night-800/50 dark:text-slate-400">
         Not enough shared indicators to draw a shape. These two groups have{" "}
-        {axes.length} of six in common, and a radar needs at least three.
+        {axes.length} in common, and a radar needs at least three.
       </div>
     );
   }
@@ -45,14 +45,19 @@ export default function CompareRadar({
         </div>
       </div>
 
-      <div className="h-[320px] w-full">
+      {/* Eleven axes need considerably more room than six, both for the shape
+          and for the labels ringing it, so the chart grows on wider screens. */}
+      <div className="h-[380px] w-full sm:h-[460px] lg:h-[520px]">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={axes} outerRadius="70%" margin={{ top: 8, right: 40, bottom: 8, left: 40 }}>
+          <RadarChart
+            data={axes}
+            outerRadius="76%"
+            /* Side margins only need to clear the longest label, and those are
+               deliberately short, so the shape gets the rest of the width. */
+            margin={{ top: 16, right: 44, bottom: 16, left: 44 }}
+          >
             <PolarGrid stroke={t.grid} />
-            <PolarAngleAxis
-              dataKey="axis"
-              tick={{ fontSize: 11, fill: t.axis }}
-            />
+            <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: t.axis }} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             <Tooltip content={<RadarTooltip />} />
             <Radar
@@ -81,9 +86,9 @@ export default function CompareRadar({
 
       <div className="mt-2 space-y-1 text-[11px] text-ink-500 dark:text-slate-400">
         <p>
-          Each axis is scaled on its own, so whichever group leads it sits on the
-          outer ring. Read the shape rather than the distance, and hover any
-          corner for the real figures.
+          Every metric from the side by side table, each axis scaled on its own so
+          whichever group leads it sits on the outer ring. Read the shape rather
+          than the distance, and hover any corner for the real figures.
         </p>
         {skipped.length > 0 && (
           <p className="text-ink-400 dark:text-slate-500">
@@ -112,6 +117,9 @@ function RadarTooltip({ active, payload }: any) {
 
   return (
     <ChartTooltipShell>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-300">
+        {row.section}
+      </p>
       <p className="font-semibold text-ink-700 dark:text-slate-100">{row.axis}</p>
       <p className="mt-1 flex items-center gap-2 text-ink-600 dark:text-slate-300">
         <span className="h-2 w-2 shrink-0 rounded-full bg-brand-500" aria-hidden />
@@ -126,9 +134,6 @@ function RadarTooltip({ active, payload }: any) {
         <span className="font-bold text-ink-800 dark:text-slate-100">
           {show(row.rawB)}
         </span>
-      </p>
-      <p className="mt-1.5 border-t border-brand-100 pt-1.5 text-[11px] text-ink-500 dark:border-night-600 dark:text-slate-400">
-        {row.note}
       </p>
     </ChartTooltipShell>
   );

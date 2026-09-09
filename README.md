@@ -86,9 +86,11 @@ it as UTF-8.
 
 ### The indicator profile radar
 
-Key insights opens with a radar comparing the two groups across six indicators:
-average attendance, peak attendance, steadiness, first timers, youth class and
-children share.
+Key insights opens with a radar comparing the two groups across every metric in
+the side by side table. It is built from the same rows the table renders, in
+[`lib/metrics.ts`](lib/metrics.ts), so the two views can never drift apart: add
+a row to the table and the radar grows an axis. Radar labels are shortened via
+`radarLabel` because eleven full names collide on one ring.
 
 The catch with a radar is that every axis has to share one scale, and these
 indicators do not: attendance runs into the hundreds, shares are percentages,
@@ -100,14 +102,19 @@ real figures so nothing has to be read off the rings.
 
 Two consequences fall out of that:
 
-- **Steadiness is inverted.** It comes from the swing between a group's quietest
-  and busiest service, where a smaller number is steadier. Plotted raw, the more
-  erratic group would reach further out and look better, so the axis uses the
-  reciprocal and the steadier group reaches further.
+- **A larger group draws a larger shape.** Services, total attendance and the
+  participation totals all scale with how many services a group contains, so
+  comparing 51 Sundays against 35 will show the bigger group ahead on those
+  axes almost by definition. Read the per service rows and the shares for a
+  size independent comparison. `MetricRow.invert` exists for any metric where a
+  smaller figure is the better showing, though none of the current rows need it.
 - **An axis missing from either group is dropped, not zeroed.** A zero would
   draw a dent that reads as a finding rather than a gap in the sheet. Dropped
   axes are named underneath. Below three shared indicators the radar is replaced
   by a note, since three points is the minimum that encloses a shape.
+- **The export carries it.** The CSV gains an Indicator profile block with each
+  indicator, both raw figures, and the two index columns the radar actually
+  plots.
 
 Two decisions worth knowing:
 
@@ -217,6 +224,7 @@ lib/
   aggregate.ts          KPIs, run-chart rules, groupings
   filters.ts            Filter state and the logic both pages share
   compare.ts            Group statistics and the computed insight sentences
+  metrics.ts            Metric row types shared by the table, radar and export
   exportCsv.ts          RFC 4180 quoting and the comparison CSV builder
 components/             Charts, KPI cards, theme provider
 middleware.ts           Redirects anonymous requests to /login

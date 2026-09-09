@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { GroupStats, Insight } from "@/lib/compare";
-import { buildComparisonCsv, downloadCsv, type ExportSection } from "@/lib/exportCsv";
+import { buildComparisonCsv, downloadCsv } from "@/lib/exportCsv";
+import type { MetricSection, RadarAxis } from "@/lib/metrics";
 
 export default function ExportButton({
   labelA,
@@ -11,13 +12,15 @@ export default function ExportButton({
   statsB,
   sections,
   insights,
+  radar,
 }: {
   labelA: string;
   labelB: string;
   statsA: GroupStats;
   statsB: GroupStats;
-  sections: ExportSection[];
+  sections: MetricSection[];
   insights: Insight[];
+  radar: RadarAxis[];
 }) {
   const [done, setDone] = useState(false);
 
@@ -29,6 +32,7 @@ export default function ExportButton({
       statsB,
       sections,
       insights,
+      radar,
     });
     const stamp = new Date().toISOString().slice(0, 10);
     downloadCsv(`brooks-comparison-${stamp}.csv`, csv);
