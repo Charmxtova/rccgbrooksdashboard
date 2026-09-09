@@ -74,6 +74,9 @@ export function buildComparisonCsv({
       [
         "The index columns are what the radar plots. Each indicator is scaled on its own, with the leading group set to 100, so indicators measured in different units can sit on one chart.",
       ],
+      [
+        "Figures here are per service rates, not the totals shown above, so a group holding more services does not lead on volume alone. Raw counts and totals are left off the radar for the same reason.",
+      ],
       ["Section", "Indicator", "Set A", "Set B", "Set A index", "Set B index"],
     );
     for (const axis of radar) {

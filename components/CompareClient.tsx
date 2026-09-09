@@ -24,6 +24,9 @@ import { Card } from "./ui";
 const A_TEXT = "text-brand-600 dark:text-brand-300";
 const B_TEXT = "text-accent-600 dark:text-accent-400";
 
+/** Turns a total into a rate, or null when there is nothing to divide by. */
+const perUnit = (total: number, count: number) => (count > 0 ? total / count : null);
+
 export default function CompareClient({ dataset }: { dataset: Dataset }) {
   const [a, setA] = useState<FilterState>({ ...DEFAULT_FILTERS, period: "2025" });
   const [b, setB] = useState<FilterState>({ ...DEFAULT_FILTERS, period: "2026" });
@@ -50,24 +53,24 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
     {
       title: "Attendance",
       rows: [
-        { label: "Services", a: statsA.services, b: statsB.services, dp: 0 },
+        { label: "Services", a: statsA.services, b: statsB.services, dp: 0, radar: false },
         {
           label: "Total attendance",
-          radarLabel: "Total",
+          radar: false,
           a: statsA.totalAttendance,
           b: statsB.totalAttendance,
           dp: 0,
         },
         {
           label: "Average per service",
-          radarLabel: "Average",
+          radar: { label: "Average" },
           a: statsA.meanAttendance,
           b: statsB.meanAttendance,
           dp: 0,
         },
         {
           label: "Median per service",
-          radarLabel: "Median",
+          radar: { label: "Median" },
           a: medA,
           b: medB,
           dp: 0,
@@ -75,14 +78,14 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
         },
         {
           label: "Best attended",
-          radarLabel: "Best",
+          radar: { label: "Best" },
           a: statsA.peak?.value ?? null,
           b: statsB.peak?.value ?? null,
           dp: 0,
         },
         {
           label: "Least attended",
-          radarLabel: "Least",
+          radar: { label: "Least" },
           a: statsA.low?.value ?? null,
           b: statsB.low?.value ?? null,
           dp: 0,
@@ -115,14 +118,27 @@ export default function CompareClient({ dataset }: { dataset: Dataset }) {
           b: statsB.firstTimersTotal,
           dp: 0,
           note: `Across ${statsA.firstTimersServices} and ${statsB.firstTimersServices} services`,
+          // The table shows the total; the radar shows the rate, so a group
+          // with more services does not lead on volume alone.
+          radar: {
+            label: "First timers",
+            a: perUnit(statsA.firstTimersTotal, statsA.firstTimersServices),
+            b: perUnit(statsB.firstTimersTotal, statsB.firstTimersServices),
+            dp: 1,
+          },
         },
         {
           label: "Youth Interactive Class",
-          radarLabel: "Youth class",
           a: statsA.youthTotal,
           b: statsB.youthTotal,
           dp: 0,
           note: `Across ${statsA.youthServices} and ${statsB.youthServices} sessions`,
+          radar: {
+            label: "Youth class",
+            a: perUnit(statsA.youthTotal, statsA.youthServices),
+            b: perUnit(statsB.youthTotal, statsB.youthServices),
+            dp: 0,
+          },
         },
       ],
     },

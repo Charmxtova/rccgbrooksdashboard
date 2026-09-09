@@ -84,21 +84,12 @@ export default function CompareRadar({
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-2 space-y-1 text-[11px] text-ink-500 dark:text-slate-400">
-        <p>
-          Attendance and participation metrics from the side by side table, each
-          axis scaled on its own so whichever group leads it sits on the outer
-          ring. Read the shape rather than the distance, and hover any corner for
-          the real figures. The three shares are left to the table, since they
-          sum to about 100 and move against each other rather than independently.
+      {skipped.length > 0 && (
+        <p className="mt-2 text-[11px] text-ink-400 dark:text-slate-500">
+          Left off because one group has no figure for it:{" "}
+          {skipped.join(", ").toLowerCase()}.
         </p>
-        {skipped.length > 0 && (
-          <p className="text-ink-400 dark:text-slate-500">
-            Left off because one group has no figure for it:{" "}
-            {skipped.join(", ").toLowerCase()}.
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

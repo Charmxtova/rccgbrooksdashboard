@@ -1,3 +1,18 @@
+export interface RadarOverride {
+  /** Shorter label, since full metric names collide on one ring. */
+  label?: string;
+  /** Different figures to plot, which is how a total becomes a rate. */
+  a?: number | null;
+  b?: number | null;
+  dp?: number;
+  suffix?: string;
+  /**
+   * Set when a smaller raw figure is the better showing, so the axis is
+   * inverted and the leading group reaches further out.
+   */
+  invert?: boolean;
+}
+
 export interface MetricRow {
   label: string;
   a: number | null;
@@ -6,13 +21,13 @@ export interface MetricRow {
   suffix?: string;
   /** Shown under the label in the table when the figure needs explaining. */
   note?: string;
-  /** Shorter label for the radar, where eleven long names would collide. */
-  radarLabel?: string;
   /**
-   * Set when a smaller raw figure is the better showing, so the radar can
-   * invert it and let the leading group reach further out.
+   * How this row appears on the radar. Omitted plots the row's own figures.
+   * `false` keeps it off the radar entirely, which suits raw counts and totals
+   * that only measure how big a group is. An object plots different figures,
+   * which is how a total is shown as a per service rate.
    */
-  invert?: boolean;
+  radar?: false | RadarOverride;
 }
 
 export interface MetricSection {
@@ -61,32 +76,39 @@ export function radarFromSections(sections: MetricSection[]): {
     if (section.inRadar === false) continue;
 
     for (const row of section.rows) {
+      if (row.radar === false) continue;
+
+      const override = row.radar ?? {};
+      const label = override.label ?? row.label;
+      const a = override.a !== undefined ? override.a : row.a;
+      const b = override.b !== undefined ? override.b : row.b;
+
       // An axis missing from either side would draw a dent that reads as a
       // finding rather than a gap in the sheet, so it is left off entirely.
-      if (row.a === null || row.b === null) {
-        skipped.push(row.radarLabel ?? row.label);
+      if (a === null || b === null) {
+        skipped.push(label);
         continue;
       }
 
       // Clamping keeps the reciprocal finite when a figure is zero.
-      const scale = (v: number) => (row.invert ? 1 / Math.max(v, 1) : v);
-      const va = scale(row.a);
-      const vb = scale(row.b);
+      const scale = (v: number) => (override.invert ? 1 / Math.max(v, 1) : v);
+      const va = scale(a);
+      const vb = scale(b);
       const max = Math.max(va, vb);
 
       if (max <= 0) {
-        skipped.push(row.radarLabel ?? row.label);
+        skipped.push(label);
         continue;
       }
 
       axes.push({
-        axis: row.radarLabel ?? row.label,
+        axis: label,
         a: Math.round((va / max) * 100),
         b: Math.round((vb / max) * 100),
-        rawA: row.a,
-        rawB: row.b,
-        suffix: row.suffix ?? "",
-        dp: row.dp,
+        rawA: a,
+        rawB: b,
+        suffix: override.suffix ?? row.suffix ?? "",
+        dp: override.dp ?? row.dp,
         section: section.title,
       });
     }

@@ -86,15 +86,21 @@ it as UTF-8.
 
 ### The indicator profile radar
 
-Key insights opens with a radar comparing the two groups across the attendance
-and participation metrics from the side by side table. It is built from the same rows the table renders, in
-[`lib/metrics.ts`](lib/metrics.ts), so the two views can never drift apart: add
-a row to the table and the radar grows an axis. Radar labels are shortened via
-`radarLabel` because the full names collide on one ring, and a section can be
-kept out of the radar while staying in the table with `inRadar: false`. The
+Key insights opens with a radar comparing the two groups across six size
+independent indicators. It is built from the same rows the side by side table
+renders, in
+[`lib/metrics.ts`](lib/metrics.ts), so the two views can never drift apart.
+
+Each row carries an optional `radar` override, which can shorten the label for
+the ring, plot different figures from the table, or drop the row entirely with
+`radar: false`. A whole section leaves the radar with `inRadar: false`. The
 three shares are excluded that way: Men, Women and Children sum to about 100, so
 they move against each other rather than independently and would add three near
-identical axes without adding a third dimension.
+identical axes without a third dimension.
+
+Note that the on screen chart carries no explanatory caption, so the
+normalisation described below is documented here rather than in the interface.
+The tooltip still shows each indicator's real figures.
 
 The catch with a radar is that every axis has to share one scale, and these
 indicators do not: attendance runs into the hundreds, shares are percentages,
@@ -106,12 +112,13 @@ real figures so nothing has to be read off the rings.
 
 Two consequences fall out of that:
 
-- **A larger group draws a larger shape.** Services, total attendance and the
-  participation totals all scale with how many services a group contains, so
-  comparing 51 Sundays against 35 will show the bigger group ahead on those
-  axes almost by definition. Read the per service rows and the shares for a
-  size independent comparison. `MetricRow.invert` exists for any metric where a
-  smaller figure is the better showing, though none of the current rows need it.
+- **Nothing on the radar scales with group size.** Raw counts and totals are
+  kept off it with `radar: false`, since comparing 51 Sundays against 35 would
+  otherwise show the bigger group ahead on those axes almost by definition. The
+  participation rows carry a `radar` override plotting a per service rate, so
+  the table can show 111 first timers while the radar shows 2.8 per service.
+  `RadarOverride.invert` handles any metric where a smaller figure is the better
+  showing, though none of the current axes need it.
 - **An axis missing from either group is dropped, not zeroed.** A zero would
   draw a dent that reads as a finding rather than a gap in the sheet. Dropped
   axes are named underneath. Below three shared indicators the radar is replaced
