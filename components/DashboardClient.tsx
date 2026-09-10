@@ -121,6 +121,7 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
             data={monthlyMedian}
             valueLabel="Median attendance"
             countLabel="Services in month"
+            tone="primaryAlt"
           />
         </Card>
 
