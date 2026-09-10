@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeProvider, THEME_STORAGE_KEY } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -7,6 +7,16 @@ export const metadata: Metadata = {
   description:
     "Service attendance trends for RCCG The Brooks, updated automatically from the church attendance sheet.",
   robots: { index: false, follow: false },
+  applicationName: "RCCG The Brooks Attendance",
+  appleWebApp: {
+    capable: true,
+    title: "The Brooks",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 /**
@@ -23,6 +33,13 @@ const noFlashScript = `
   } catch (e) {}
 })();
 `;
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f8f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1417" },
+  ],
+};
 
 export default function RootLayout({
   children,

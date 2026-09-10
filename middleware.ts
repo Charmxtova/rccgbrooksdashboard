@@ -45,7 +45,14 @@ export const config = {
      * meant that renaming the logo left the middleware guarding it, so the
      * image 307'd to /login and the header silently fell back to its SVG
      * placeholder for anyone not yet signed in.
+     *
+     * The three progressive web app files are excluded for the same reason.
+     * A browser fetches the manifest with credentials omitted, so gating it
+     * would redirect that request to the sign-in page and the app would never
+     * become installable. None of the three carry anything private: the
+     * manifest holds a name and icon paths, the worker holds no data at all,
+     * and the offline page is a fixed message.
      */
-    "/((?!_next/static|_next/image|api/login|favicon\\.ico|robots\\.txt|.*\\.(?:png|jpe?g|svg|gif|webp|ico|avif)$).*)",
+    "/((?!_next/static|_next/image|api/login|favicon\\.ico|robots\\.txt|manifest\\.webmanifest|sw\\.js|offline\\.html|.*\\.(?:png|jpe?g|svg|gif|webp|ico|avif)$).*)",
   ],
 };

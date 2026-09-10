@@ -22,6 +22,7 @@ import type { Dataset } from "@/lib/types";
 import { Card } from "./ui";
 import { SimpleBar, SimplePie } from "./Charts";
 import FilterControls from "./FilterControls";
+import InstallApp from "./InstallApp";
 import KpiCards from "./KpiCards";
 import RunChart from "./RunChart";
 import SiteHeader from "./SiteHeader";
@@ -64,6 +65,8 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
         latestDate={latest?.date ?? null}
         current="/"
       />
+
+      <InstallApp />
 
       {/* ------------------------------------------------------ filters */}
       <div className="card mb-6 p-4">

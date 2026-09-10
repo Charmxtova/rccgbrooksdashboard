@@ -9,6 +9,7 @@ build
 *.tsbuildinfo
 next-env.d.ts
 
-# Stray scratch output from local debugging
-*.html
-*.csv
+# Stray scratch output from local debugging. Anchored to the repo root so
+# it cannot swallow real files such as public/offline.html.
+/*.html
+/*.csv

@@ -153,6 +153,46 @@ Both pages share [`lib/filters.ts`](lib/filters.ts) for the filter logic and
 [`components/FilterControls.tsx`](components/FilterControls.tsx) for the
 controls, so a change to filtering behaviour only needs making once.
 
+## Installing it on a phone
+
+The dashboard is an installable web app. On Android Chrome it offers an Install
+button in the page, and the site then lives on the home screen with the church
+logo, opening full screen with no address bar. On iPhone the route is Safari's
+Share menu, then Add to Home Screen, since iOS does not fire an install prompt.
+
+Three pieces make that work:
+
+- [`app/manifest.ts`](app/manifest.ts) names the app and points at the icons.
+- [`public/sw.js`](public/sw.js) is the service worker Android requires before
+  it will offer to install anything.
+- [`components/InstallApp.tsx`](components/InstallApp.tsx) catches the install
+  event and offers it as a card on the dashboard, because the browser's own
+  hint is a thin bar that is easy to miss. Browsers that never fire the event
+  render nothing rather than a button that would do nothing.
+
+Icons were generated from `public/logo.jpg` with `sharp`, installed with
+`--no-save` and removed afterwards, so it is not a project dependency. The
+maskable icon carries extra margin because Android crops that one to the
+device's icon shape.
+
+**Not verified here.** The embedded browser used during development blocks
+service worker registration outright: registering a script that does not exist
+fails with the same error as registering a real one. The manifest, icons and
+worker were all validated by other means, but the install prompt itself needs
+checking on a real phone.
+
+**The worker deliberately caches almost nothing.** Every figure is read live
+from the sheet and the whole dashboard is password gated, so a cache first
+worker could serve last week's numbers as though they were current, or hand a
+signed out phone a page it should no longer see. Pages and sheet data always go
+to the network. Only the icons and an offline page are cached, so a phone with
+no signal gets an explanation instead of the browser's error screen.
+
+The manifest, the worker and the offline page are excluded from the auth
+middleware. A browser fetches the manifest with credentials omitted, so gating
+it would redirect that request to the sign-in page and the app would never
+become installable. None of the three carry anything private.
+
 ## Branding and theming
 
 Colours are taken from the church logo: the teal wordmark, the orange swoosh,
