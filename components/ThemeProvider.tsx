@@ -91,13 +91,12 @@ export function useChartTheme() {
       children: dark ? "#94a3b8" : "#58595b",
       primary: dark ? "#4cbecd" : "#2494a3",
       /**
-       * A deeper shade of the brand teal, for a chart that is a sibling of one
-       * already using `primary` rather than a different subject. Going paler in
-       * dark mode looked closer to primary than going deeper does, at 1.4:1
-       * against 1.8:1, so both themes step the same way. Each still clears 3:1
-       * against its own card.
+       * Sits outside the logo triad, matching the purple already in the
+       * categorical palette below. Both shades clear 3:1 against their own
+       * card, and the hue does the separating from teal, so the luminance
+       * gap between them does not have to.
        */
-      primaryAlt: dark ? "#2a8b99" : "#17636e",
+      purple: dark ? "#a78bfa" : "#7c3aed",
       accent: dark ? "#f7a355" : "#ef8b24",
       median: dark ? "#fbc389" : "#db6f13",
       grid: dark ? "#1e3339" : "#dceaed",

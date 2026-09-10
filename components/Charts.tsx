@@ -17,7 +17,7 @@ import type { Bucket } from "@/lib/aggregate";
 import { useChartTheme } from "./ThemeProvider";
 import { ChartTooltipShell, EmptyChart } from "./ui";
 
-export type Tone = "primary" | "primaryAlt" | "accent" | "neutral";
+export type Tone = "primary" | "purple" | "accent" | "neutral";
 
 function BarTooltip({ active, payload, valueLabel, countLabel }: any) {
   if (!active || !payload?.length) return null;
@@ -68,7 +68,7 @@ export function SimpleBar({
   const vertical = layout === "vertical";
   const fill: Record<Tone, string> = {
     primary: t.primary,
-    primaryAlt: t.primaryAlt,
+    purple: t.purple,
     accent: t.accent,
     neutral: t.children,
   };
