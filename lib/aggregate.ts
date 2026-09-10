@@ -56,7 +56,7 @@ export function buildKpis(services: ServiceRecord[]): Kpi[] {
 
   return [
     {
-      label: "Latest service",
+      label: "Most recent service",
       value: latest?.total ?? null,
       deltaPct:
         latest?.total != null && previous?.total != null && previous.total !== 0
@@ -245,6 +245,20 @@ export function byMonth(services: ServiceRecord[]): Bucket[] {
     .map(([key, vals]) => ({
       name: formatMonth(key),
       value: Math.round(mean(vals)!),
+      count: vals.length,
+    }));
+}
+
+/**
+ * The median counterpart to byMonth. A single unusually large or small service
+ * pulls a monthly mean around, where the median stays on the typical service.
+ */
+export function medianByMonth(services: ServiceRecord[]): Bucket[] {
+  return [...averageBy(services, (s) => s.date.slice(0, 7)).entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, vals]) => ({
+      name: formatMonth(key),
+      value: Math.round(median(vals)!),
       count: vals.length,
     }));
 }

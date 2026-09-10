@@ -10,6 +10,7 @@ import {
   byYear,
   demographics,
   firstTimersByService,
+  medianByMonth,
   serviceTypeCounts,
 } from "@/lib/aggregate";
 import {
@@ -46,6 +47,7 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
   const kpis = useMemo(() => buildKpis(filtered), [filtered]);
   const runChart = useMemo(() => buildRunChart(filtered), [filtered]);
   const monthly = useMemo(() => byMonth(filtered), [filtered]);
+  const monthlyMedian = useMemo(() => medianByMonth(filtered), [filtered]);
   const yearly = useMemo(() => byYear(filtered), [filtered]);
   const preachers = useMemo(() => byPreacher(filtered), [filtered]);
   const demo = useMemo(() => demographics(filtered), [filtered]);
@@ -107,6 +109,17 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
           <SimpleBar
             data={monthly}
             valueLabel="Average attendance"
+            countLabel="Services in month"
+          />
+        </Card>
+
+        <Card
+          title="Median attendance by month"
+          subtitle={`Median attendance per month across ${scopeLabel}. Unmoved by a single unusually large or small service.`}
+        >
+          <SimpleBar
+            data={monthlyMedian}
+            valueLabel="Median attendance"
             countLabel="Services in month"
           />
         </Card>
