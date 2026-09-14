@@ -143,6 +143,17 @@ function PieTooltip({ active, payload, total }: any) {
         {p.value.toLocaleString("en-GB")}{" "}
         <span className="text-ink-500 dark:text-slate-400">({pct}%)</span>
       </p>
+      {p.average !== undefined && (
+        <p className="mt-1 border-t border-brand-100 pt-1 text-ink-600 dark:border-night-600 dark:text-slate-300">
+          <span className="font-bold">{Math.round(p.average)}</span> per service
+          {p.recorded !== undefined && (
+            <span className="text-ink-500 dark:text-slate-400">
+              {" "}
+              across {p.recorded}
+            </span>
+          )}
+        </p>
+      )}
     </ChartTooltipShell>
   );
 }
@@ -191,9 +202,25 @@ export function SimplePie({
             verticalAlign="bottom"
             height={28}
             iconType="circle"
-            formatter={(value: string) => (
-              <span className="text-xs text-ink-600 dark:text-slate-300">{value}</span>
-            )}
+            // The average goes in the legend as well as the tooltip, so it can
+            // be read without hovering, which is not possible on a phone.
+            formatter={(value: string, entry: any) => {
+              const avg = (entry?.payload as Bucket | undefined)?.average;
+              return (
+                <span className="text-xs text-ink-600 dark:text-slate-300">
+                  {value}
+                  {avg !== undefined && (
+                    <span className="font-semibold text-ink-800 dark:text-slate-100">
+                      {" "}
+                      {Math.round(avg)}
+                      <span className="font-normal text-ink-500 dark:text-slate-400">
+                        {" "}avg
+                      </span>
+                    </span>
+                  )}
+                </span>
+              );
+            }}
           />
         </PieChart>
       </ResponsiveContainer>

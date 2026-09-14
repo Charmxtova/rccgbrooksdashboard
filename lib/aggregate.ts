@@ -220,6 +220,10 @@ export interface Bucket {
   name: string;
   value: number;
   count?: number;
+  /** Mean per service, shown beside the total where a total alone misleads. */
+  average?: number;
+  /** How many services the average was taken over. */
+  recorded?: number;
   /** Extra lines for the tooltip, used where a bar is a single service. */
   theme?: string | null;
   preacher?: string | null;
@@ -292,18 +296,26 @@ export function serviceTypeCounts(services: ServiceRecord[]): Bucket[] {
 }
 
 export function demographics(services: ServiceRecord[]): Bucket[] {
-  let men = 0;
-  let women = 0;
-  let children = 0;
-  for (const s of services) {
-    men += s.men ?? 0;
-    women += s.women ?? 0;
-    children += s.children ?? 0;
-  }
+  /**
+   * The total counts a blank cell as nothing, but the average divides by the
+   * services that actually recorded the group, not by every service in range.
+   * Counting blanks as zeroes would quietly understate every average.
+   */
+  const group = (name: string, pick: (s: ServiceRecord) => number | null) => {
+    const known = services.filter((s) => pick(s) !== null);
+    const value = known.reduce((sum, s) => sum + pick(s)!, 0);
+    return {
+      name,
+      value,
+      recorded: known.length,
+      average: known.length > 0 ? value / known.length : undefined,
+    };
+  };
+
   return [
-    { name: "Men", value: men },
-    { name: "Women", value: women },
-    { name: "Children", value: children },
+    group("Men", (s) => s.men),
+    group("Women", (s) => s.women),
+    group("Children", (s) => s.children),
   ].filter((b) => b.value > 0);
 }
 

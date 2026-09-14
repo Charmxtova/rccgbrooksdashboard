@@ -139,7 +139,7 @@ export default function DashboardClient({ dataset }: { dataset: Dataset }) {
 
         <Card
           title="Congregation make-up"
-          subtitle={`Total men, women and children across ${scopeLabel}`}
+          subtitle={`Total men, women and children across ${scopeLabel}. The legend and tooltip give the average per service.`}
         >
           <SimplePie data={demo} colors={[chart.men, chart.women, chart.children]} />
         </Card>
